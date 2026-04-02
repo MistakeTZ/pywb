@@ -1,13 +1,23 @@
-from typing import ClassVar
 from .base import WBMethod
+from ..enums import WBDomain
 from ..types import PingResponse
 
 
 class Ping(WBMethod[PingResponse]):
-    """
-    Команда для проверки доступности API.
-    """
+    __http_method__ = "GET"
+    __api_path__ = "/ping"
+    __domain__ = WBDomain.COMMON
+    __returning__ = PingResponse
 
-    __http_method__: ClassVar[str] = "GET"
-    __api_path__: ClassVar[str] = "/ping"
-    __returning__: ClassVar[type] = PingResponse
+class PingContent(WBMethod[PingResponse]):
+    __http_method__ = "GET"
+    __api_path__ = "/ping"
+    __domain__ = WBDomain.CONTENT
+    __returning__ = PingResponse
+
+
+class PingAnalytics(WBMethod[PingResponse]):
+    __http_method__ = "GET"
+    __api_path__ = "/ping"
+    __domain__ = WBDomain.ANALYTICS
+    __returning__ = PingResponse

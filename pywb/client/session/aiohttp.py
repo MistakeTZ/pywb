@@ -9,6 +9,7 @@ from aiohttp import ClientError, ClientSession, TCPConnector
 from typing_extensions import Self
 
 from .base import BaseSession, WBType
+from ...enums import WB_ROUTER, WBDomain
 from ...exceptions import WBApiError
 
 if TYPE_CHECKING:
@@ -30,13 +31,14 @@ class AiohttpWBSession(BaseSession):
     HTTP-сессия на базе aiohttp для работы с Wildberries API.
     """
 
-    def __init__(self, limit: int = 100, **kwargs: Any) -> None:
+    def __init__(self, is_sandbox: bool = False, limit: int = 100, **kwargs):
         """
         :param limit: Максимальное количество одновременных соединений (Connection Pooling).
         :param kwargs: Аргументы для BaseSession (base_url, timeout и т.д.).
         """
         super().__init__(**kwargs)
 
+        self.is_sandbox = is_sandbox
         self._session: ClientSession | None = None
         self._connector_type: type[TCPConnector] = TCPConnector
         self._connector_init: dict[str, Any] = {
@@ -61,6 +63,21 @@ class AiohttpWBSession(BaseSession):
 
             await asyncio.sleep(0.25)
 
+    def _get_url(self, domain: WBDomain, path: str) -> str:
+        """Определяет базовый URL на основе домена и флага Sandbox"""
+        domain_urls = WB_ROUTER[domain]
+
+        if self.is_sandbox:
+            if domain_urls["sandbox"] is None:
+                raise ValueError(
+                    f"Sandbox environment is not available for domain: {domain}"
+                )
+            base_url = domain_urls["sandbox"]
+        else:
+            base_url = domain_urls["prod"]
+
+        return f"{base_url.rstrip('/')}/{path.lstrip('/')}"
+
     async def make_request(
         self,
         token: str,
@@ -72,7 +89,7 @@ class AiohttpWBSession(BaseSession):
         """
         session = await self.create_session()
 
-        url = f"{self.base_url.rstrip('/')}/{method.__api_path__.lstrip('/')}"
+        url = self._get_url(method.__domain__, method.__api_path__)
 
         http_method = method.__http_method__.upper()
 
