@@ -5,7 +5,6 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "python-wb"
 version = "0.1.0"
-description = "Python library for working with the Wildberries API."
 authors = [
   { name="MistakeTZ", email="mistaketz@gmail.com" },
 ]
@@ -19,9 +18,11 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp>=3.13.5",
+    "build>=1.4.2",
     "httpx>=0.28.1",
     "pydantic>=2.12.5",
     "setuptools>=82.0.1",
+    "twine>=6.2.0",
 ]
 
 [project.urls]

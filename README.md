@@ -150,14 +150,6 @@ client = WBClient(token="YOUR_TOKEN", is_sandbox=True)
 
 If sandbox is unavailable for a domain, a `ValueError` is raised by the session router.
 
-## Development
-
-Run the example script:
-
-```bash
-python examples/ping.py
-```
-
 ## Notes
 
 - Keep your API token secret and do not commit it to git.
