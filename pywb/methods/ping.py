@@ -9,6 +9,7 @@ class Ping(WBMethod[PingResponse]):
     __domain__ = WBDomain.COMMON
     __returning__ = PingResponse
 
+
 class PingContent(WBMethod[PingResponse]):
     __http_method__ = "GET"
     __api_path__ = "/ping"

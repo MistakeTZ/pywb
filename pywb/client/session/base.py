@@ -6,7 +6,7 @@ import json
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 from typing_extensions import Self
 
 from ...exceptions import (
@@ -63,8 +63,6 @@ class BaseSession(abc.ABC):
         self.json_dumps = json_dumps
         self.timeout = timeout
 
-        # TODO: Здесь можно добавить менеджер мидлварей, как в aiogram
-
     def check_response(
         self,
         method: WBMethod[WBType],
@@ -86,20 +84,17 @@ class BaseSession(abc.ABC):
             self._raise_for_status(status_code, json_data)
 
         return_type = method.__returning__
-
+        
         if return_type in (bool, dict, list, Any):
             return cast(WBType, json_data)
 
         try:
-            if issubclass(return_type, BaseModel):
-                return return_type.model_validate(json_data)
+            adapter = TypeAdapter(return_type)
+            validated_data = adapter.validate_python(json_data)
+            return cast(WBType, validated_data)
         except ValidationError as e:
-            raise ClientDecodeError(
-                "Failed to deserialize response into Pydantic model", e, json_data
-            ) from e
-
-        return cast(WBType, json_data)
-
+            raise ClientDecodeError("Failed to deserialize response into Pydantic model", e, json_data) from e
+        
     def _raise_for_status(self, status_code: int, payload: dict[str, Any]) -> None:
         """Внутренний маппинг ошибок HTTP на исключения Python"""
         if status_code == 400:
