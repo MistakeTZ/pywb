@@ -1,11 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "pywb"
+name = "python-wb"
 version = "0.1.0"
-description = "Add your description here"
+description = "Python library for working with the Wildberries API."
+authors = [
+  { name="MistakeTZ", email="mistaketz@gmail.com" },
+]
+description = "Библиотека для работы с API Wildberries на Python."
 readme = "README.md"
 requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "aiohttp>=3.13.5",
     "httpx>=0.28.1",
     "pydantic>=2.12.5",
+    "setuptools>=82.0.1",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/mistaketz/pywb"
+"Bug Tracker" = "https://github.com/mistaketz/pywb/issues"
