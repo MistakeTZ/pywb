@@ -41,8 +41,35 @@ from .fbs import (
     TrbxItem,
     PassItem,
 )
+from .dbw import (
+    GetNewOrdersDBWResponse,
+    OrderDBW,
+    GetOrdersDBWResponse,
+    GetDeliveryDatesDBWResponse,
+    GetClientInfoDBWResponse,
+    ClientInfoDBW,
+    GetCourierInfoDBWResponse,
+    GetOrdersStatusesDBWResponse,
+    GetStickersDBWResponse,
+    GetOrderMetaDBWResponse,
+    OrderCourierInfo,
+    DeliveryDateInfo,
+)
+
 
 __all__ = [
+    "DeliveryDateInfo",
+    "OrderCourierInfo",
+    "GetNewOrdersDBWResponse",
+    "OrderDBW",
+    "GetOrdersDBWResponse",
+    "GetDeliveryDatesDBWResponse",
+    "GetClientInfoDBWResponse",
+    "ClientInfoDBW",
+    "GetCourierInfoDBWResponse",
+    "GetOrdersStatusesDBWResponse",
+    "GetStickersDBWResponse",
+    "GetOrderMetaDBWResponse",
     "OrderOptions",
     "OrderItem",
     "GetNewOrdersResponse",

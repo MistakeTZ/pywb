@@ -33,6 +33,22 @@ from ..methods import (
     AddOrdersToSupply,
     DeliverSupply,
     GetStickersResponse,
+    GetOrdersDBW,
+    GetNewOrdersDBW,
+    GetOrdersStatusesDBW,
+    ConfirmOrderDBW,
+    AssembleOrderDBW,
+    CancelOrderDBW,
+    GetOrderMetaDBW,
+    GetBuyerInfoDBW,
+    GetOrderStickersDBW,
+    GetCourierInfoDBW,
+    GetDeliveryDateDBW,
+    DeleteOrderMetaDBW,
+    UpdateOrderMetaSgtinDBW,
+    UpdateOrderMetaUinDBW,
+    UpdateOrderMetaImeiDBW,
+    UpdateOrderMetaGtinDBW,
 )
 
 from ..types import (
@@ -58,6 +74,15 @@ from ..types import (
     GetSuppliesResponse,
     CreateSupplyResponse,
     GetSuppliesResponse,
+    GetOrderMetaDBWResponse,
+    GetNewOrdersDBWResponse,
+    GetOrdersDBWResponse,
+    GetOrdersStatusesDBWResponse,
+    GetStickersDBWResponse,
+    GetStickersResponse,
+    OrderCourierInfo,
+    ClientInfoDBW,
+    DeliveryDateInfo,
 )
 
 if TYPE_CHECKING:
@@ -535,4 +560,223 @@ class WBClient:
         :param supply_id: ID поставки (например, WB-GI-1234567).
         """
         call = DeliverSupply(supply_id=supply_id)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # DBW: СБОРОЧНЫЕ ЗАДАНИЯ И СТАТУСЫ
+    # ==========================================
+
+    async def get_new_orders_dbw(
+        self, request_timeout: Optional[int] = None
+    ) -> GetNewOrdersDBWResponse:
+        """
+        Получение списка новых заказов (DBW).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        return await self(GetNewOrdersDBW(), request_timeout=request_timeout)
+
+    async def get_orders_dbw(
+        self,
+        date_from: int,
+        date_to: int,
+        limit: int = 1000,
+        next_cursor: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> GetOrdersDBWResponse:
+        """
+        Получение информации по завершенным (отмененным или проданным) заказам DBW.
+        Максимальный период за один запрос — 30 календарных дней.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+
+        :param date_from: Дата начала периода (Unix Timestamp).
+        :param date_to: Дата конца периода (Unix Timestamp).
+        :param limit: Количество заказов в ответе (максимум 1000).
+        :param next_cursor: Параметр пагинации.
+        """
+        call = GetOrdersDBW(
+            dateFrom=date_from, dateTo=date_to, limit=limit, next=next_cursor
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_orders_statuses_dbw(
+        self,
+        orders: List[int],
+        request_timeout: Optional[int] = None,
+    ) -> GetOrdersStatusesDBWResponse:
+        """
+        Получение актуальных статусов заказов DBW.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+
+        :param orders: Список ID сборочных заданий (до 1000 штук).
+        """
+        call = GetOrdersStatusesDBW(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def confirm_order_dbw(
+        self, order_id: int, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Перевод заказа DBW в статус confirm (на сборке).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        Один запрос с ошибкой 409 считается системой за 10 запросов.
+        """
+        call = ConfirmOrderDBW(order_id=order_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def assemble_order_dbw(
+        self, order_id: int, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Перевод заказа DBW в статус complete (в доставке).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        Один запрос с ошибкой 409 считается системой за 10 запросов.
+        """
+        call = AssembleOrderDBW(order_id=order_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def cancel_order_dbw(
+        self, order_id: int, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Отмена заказа DBW продавцом (перевод в статус cancel).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        Один запрос с ошибкой 409 считается системой за 10 запросов.
+        """
+        call = CancelOrderDBW(order_id=order_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_order_stickers_dbw(
+        self,
+        orders: List[int],
+        sticker_type: str = "png",
+        width: int = 58,
+        height: int = 40,
+        request_timeout: Optional[int] = None,
+    ) -> GetStickersDBWResponse:
+        """
+        Получение этикеток (стикеров) для заказов DBW в статусах confirm и complete.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+
+        :param orders: Список ID заданий (максимум 100 шт за раз).
+        :param sticker_type: Формат этикетки (svg, zplv, zplh, png).
+        """
+        call = GetOrderStickersDBW(
+            orders=orders, type=sticker_type, width=width, height=height
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # DBW: ИНФОРМАЦИЯ О ДОСТАВКЕ, КЛИЕНТАХ И КУРЬЕРАХ
+    # ==========================================
+
+    async def get_delivery_date_dbw(
+        self, orders: List[int], request_timeout: Optional[int] = None
+    ) -> DeliveryDateInfo:
+        """
+        Получение информации о дате и времени доставки, выбранных покупателем.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetDeliveryDateDBW(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_buyer_info_dbw(
+        self, orders: List[int], request_timeout: Optional[int] = None
+    ) -> ClientInfoDBW:
+        """
+        Получение контактной информации о покупателе по ID заказа.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetBuyerInfoDBW(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_courier_info_dbw(
+        self, orders: List[int], request_timeout: Optional[int] = None
+    ) -> OrderCourierInfo:
+        """
+        Получение контактов курьера и номера его автомобиля по ID заказа.
+        Доступно для заказов в статусе confirm и complete.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetCourierInfoDBW(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # DBW: УПРАВЛЕНИЕ МЕТАДАННЫМИ (Маркировка)
+    # ==========================================
+
+    async def get_order_meta_dbw(
+        self, order_id: int, request_timeout: Optional[int] = None
+    ) -> GetOrderMetaDBWResponse:
+        """
+        Получение привязанных метаданных заказа (УИН, КиЗ, IMEI, GTIN).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrderMetaDBW(order_id=order_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def delete_order_meta_dbw(
+        self, order_id: int, key: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Удаление метаданных заказа по ключу.
+        Возможные ключи: imei, uin, gtin, sgtin.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = DeleteOrderMetaDBW(order_id=order_id, key=key)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_order_meta_sgtin_dbw(
+        self, order_id: int, sgtins: List[str], request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Добавление кодов Data Matrix (Честный ЗНАК) к заказу в статусе confirm.
+
+        ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrderMetaSgtinDBW(order_id=order_id, sgtins=sgtins)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_order_meta_uin_dbw(
+        self, order_id: int, uin: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Добавление УИНа (Уникального идентификационного номера) к заказу в статусе confirm.
+
+        ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrderMetaUinDBW(order_id=order_id, uin=uin)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_order_meta_imei_dbw(
+        self, order_id: int, imei: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Добавление IMEI к заказу в статусе confirm.
+
+        ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrderMetaImeiDBW(order_id=order_id, imei=imei)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_order_meta_gtin_dbw(
+        self, order_id: int, gtin: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Добавление GTIN (для товаров из Беларуси) к заказу в статусе confirm.
+
+        ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrderMetaGtinDBW(order_id=order_id, gtin=gtin)
         return await self(call, request_timeout=request_timeout)

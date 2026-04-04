@@ -28,8 +28,36 @@ from .fbs import (
     DeliverSupply,
     GetStickersResponse,
 )
+from .dbw import (
+    GetNewOrdersDBW,
+    GetOrdersDBW,
+    GetDeliveryDateDBW,
+    GetBuyerInfoDBW,
+    GetCourierInfoDBW,
+    GetOrdersStatusesDBW,
+    GetOrderMetaDBW,
+    ConfirmOrderDBW,
+    AssembleOrderDBW,
+    CancelOrderDBW,
+    GetOrderStickersDBW,
+    DeleteOrderMetaDBW,
+    UpdateOrderMetaSgtinDBW,
+    UpdateOrderMetaUinDBW,
+    UpdateOrderMetaImeiDBW,
+    UpdateOrderMetaGtinDBW,
+)
+
 
 __all__ = [
+    "DeleteOrderMetaDBW",
+    "UpdateOrderMetaSgtinDBW",
+    "UpdateOrderMetaUinDBW",
+    "UpdateOrderMetaImeiDBW",
+    "UpdateOrderMetaGtinDBW",
+    "GetOrderStickersDBW",
+    "CancelOrderDBW",
+    "AssembleOrderDBW",
+    "ConfirmOrderDBW",
     "GetPassOffices",
     "CreatePass",
     "GetNewOrders",
@@ -62,4 +90,11 @@ __all__ = [
     "DeleteUser",
     "GetNews",
     "GetStickersResponse",
+    "GetNewOrdersDBW",
+    "GetOrdersDBW",
+    "GetDeliveryDateDBW",
+    "GetBuyerInfoDBW",
+    "GetCourierInfoDBW",
+    "GetOrdersStatusesDBW",
+    "GetOrderMetaDBW",
 ]
