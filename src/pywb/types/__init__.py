@@ -9,8 +9,27 @@ from .users import (
     AccessItem,
     UserAccessUpdate,
 )
+from .products import  (
+    WBContentResponse,
+    SubjectItem,
+    CardsListData,
+    CreateCardItem,
+    GoodPriceItem,
+    SetPricesTaskResponse,
+    WarehouseItem,
+    StockItem,
+    CreateCardVariant,
+)
 
 __all__ = [
+    "WBContentResponse",
+    "SubjectItem",
+    "CardsListData",
+    "CreateCardItem",
+    "GoodPriceItem",
+    "SetPricesTaskResponse",
+    "WarehouseItem",
+    "StockItem",
     "PingResponse",
     "StatisticOrder",
     "GetNewsResponse",
@@ -24,4 +43,5 @@ __all__ = [
     "InviteInfo",
     "AccessItem",
     "UserAccessUpdate",
+    "CreateCardVariant",
 ]

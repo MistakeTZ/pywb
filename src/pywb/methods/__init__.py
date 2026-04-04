@@ -10,8 +10,17 @@ from .create_invite import CreateInvite
 from .update_user_access import UpdateUserAccess
 from .delete_user import DeleteUser
 from .get_news import GetNews
+from .create_cards import CreateCards
+from .get_card_list import GetCardsList
+from .get_warehouses import GetWarehouses
+from .update_stocks import UpdateStocks
 
 __all__ = [
+    "CreateCards",
+    "GetCardList",
+    "GetWarehouses",
+    "UpdateStocks",
+    "GetCardsList",
     "Ping",
     "PingContent",
     "PingAnalytics",

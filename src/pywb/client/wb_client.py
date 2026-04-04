@@ -1,7 +1,6 @@
-# client.py
 from __future__ import annotations
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any, Dict, List
 from .session.base import BaseSession
 from .session.aiohttp import AiohttpWBSession
 
@@ -17,8 +16,12 @@ from ..methods import (
     GetJamSubscription,
     GetSellerRating,
     GetUsers,
+    GetCardsList,
+    GetWarehouses,
+    DeleteUser,
+    UpdateProductCard,
+    UpdateStocks,
 )
-
 
 from ..types import (
     PingResponse,
@@ -30,6 +33,10 @@ from ..types import (
     InviteInfo,
     AccessItem,
     UserAccessUpdate,
+    CardsListData,
+    WarehouseItem,
+    StockItem,
+    CreateCardVariant,
 )
 
 if TYPE_CHECKING:
@@ -75,21 +82,22 @@ class WBClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.aclose()
 
+    # ==========================================
+    # БАЗОВЫЕ МЕТОДЫ И ИНФОРМАЦИЯ
+    # ==========================================
+
     async def ping(self, request_timeout: int | None = None) -> PingResponse:
         """
         Проверяет доступность серверов Wildberries и валидность токена.
         """
         call = Ping()
-
         return await self(call, request_timeout=request_timeout)
 
     async def ping_content(self, request_timeout: int | None = None) -> PingResponse:
         """
-        Специальный метод для проверки доступности Content API (для карточек, цен и т.д.).
-        Полезно, если у вас есть методы, которые работают только с этим доменом.
+        Специальный метод для проверки доступности Content API.
         """
         call = PingContent()
-
         return await self(call, request_timeout=request_timeout)
 
     async def get_news(
@@ -101,11 +109,7 @@ class WBClient:
         """
         Получение новостей портала продавцов.
 
-        :param from_date: Дата в формате ISO 8601 (например, "2022-03-04T18:08:31") для фильтрации новостей.
-                          Вернутся новости, опубликованные после этой даты. Необязательный параметр.
-        :param from_id: Идентификатор новости для пагинации. Вернутся новости с ID больше этого значения. Необязательный параметр.
-        :param request_timeout: Таймаут запроса в секундах.
-        :return: Список объектов NewsItem с данными о новостях.
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 10 запросов).
         """
         call = GetNews(from_date=from_date, from_id=from_id)
         return await self(call, request_timeout=request_timeout)
@@ -114,12 +118,10 @@ class WBClient:
         self, request_timeout: Optional[int] = None
     ) -> SellerInfoResponse:
         """
-        Получение информации о продавце, включая его статус, дату регистрации и другую общую информацию.
+        Получение информации о продавце (имя, ИНН, ID).
 
-        :param request_timeout: Таймаут запроса в секундах.
-        :return: Объект SellerInfoResponse с данными о продавце.
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 10 запросов).
         """
-
         call = GetSellerInfo()
         return await self(call, request_timeout=request_timeout)
 
@@ -127,12 +129,10 @@ class WBClient:
         self, request_timeout: Optional[int] = None
     ) -> SellerInfoResponse:
         """
-        Получение рейтинга продавца, который может включать в себя общую оценку, количество отзывов и другую информацию, связанную с рейтингом.
+        Получение рейтинга продавца и количества отзывов.
 
-        :param request_timeout: Таймаут запроса в секундах.
-        :return: Объект SellerInfoResponse с данными о рейтинге продавца.
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 1 запрос).
         """
-
         call = GetSellerRating()
         return await self(call, request_timeout=request_timeout)
 
@@ -140,25 +140,25 @@ class WBClient:
         self, request_timeout: Optional[int] = None
     ) -> SellerInfoResponse:
         """
-        Получение информации о подписке продавца на сервис JAM, который может включать в себя статус подписки, дату окончания и другую информацию, связанную с JAM.
+        Получение информации о подписке продавца на сервис Джем.
 
-        :param request_timeout: Таймаут запроса в секундах.
-        :return: Объект SellerInfoResponse с данными о подписке на JAM.
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 10 запросов).
         """
-
         call = GetJamSubscription()
         return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ
+    # ==========================================
 
     async def get_users(
         self, request_timeout: Optional[int] = None
     ) -> GetUsersResponse:
         """
-        Получение списка пользователей, имеющих доступ к аккаунту продавца, включая их роли и права доступа.
+        Получение списка пользователей, имеющих доступ к аккаунту продавца.
 
-        :param request_timeout: Таймаут запроса в секундах.
-        :return: Объект GetUsersResponse с данными о пользователях.
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 5 запросов).
         """
-
         call = GetUsers()
         return await self(call, request_timeout=request_timeout)
 
@@ -169,14 +169,10 @@ class WBClient:
         request_timeout: Optional[int] = None,
     ) -> CreateInviteResponse:
         """
-        Создание приглашения для нового пользователя с определенными правами доступа.
+        Создание приглашения для нового пользователя с определенными правами.
 
-        :param email: Электронная почта приглашенного пользователя.
-        :param access_items: Список прав доступа, которые будут предоставлены приглашенному пользователю.
-        :param request_timeout: Таймаут запроса в секундах.
-        :return: Объект CreateInviteResponse с данными о созданном приглашении.
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 5 запросов).
         """
-
         invite_info = InviteInfo(phone_number=email)
         call = CreateInvite(invite=invite_info, access=access_items)
         return await self(call, request_timeout=request_timeout)
@@ -190,15 +186,101 @@ class WBClient:
         """
         Обновление прав доступа существующего пользователя.
 
-        :param user_id: Идентификатор пользователя, для которого нужно обновить права доступа.
-        :param access_items: Новый список прав доступа для пользователя.
-        :param request_timeout: Таймаут запроса в секундах.
-        :return: None
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 5 запросов).
         """
-
         user_access_update = UserAccessUpdate(user_id=user_id, access=access_items)
         call = UpdateUserAccess(**user_access_update.model_dump(by_alias=True))
         await self(call, request_timeout=request_timeout)
+
+    async def delete_user(
+        self,
+        user_id: int,
+        request_timeout: Optional[int] = None,
+    ) -> bool:
+        """
+        Удаление пользователя из кабинета продавца.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 10 запросов).
+
+        :param user_id: ID пользователя, чей доступ будет отозван.
+        """
+        call = DeleteUser(deletedUserID=user_id)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # РАБОТА С ТОВАРАМИ (КОНТЕНТ)
+    # ==========================================
+
+    async def get_cards_list(
+        self,
+        settings: Dict[str, Any],
+        request_timeout: Optional[int] = None,
+    ) -> CardsListData:
+        """
+        Получение списка созданных карточек товаров.
+
+        ⚠️ ЛИМИТЫ: 100 запросов в 1 минуту с шагом 600 мс (Burst: 5 запросов).
+        Внимание: За один раз возвращается не более 100 карточек, используйте курсор для пагинации.
+
+        :param settings: Словарь с настройками фильтрации, сортировки и курсором.
+        """
+        call = GetCardsList(settings=settings)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_product_card(
+        self,
+        items: List[CreateCardVariant],
+        request_timeout: Optional[int] = None,
+    ) -> bool:
+        """
+        Редактирование карточек товаров (включая добавление новых размеров).
+
+        ⚠️ ЛИМИТЫ: 10 запросов в 1 минуту с шагом 6 с (Burst: 5 запросов).
+        - За один запрос можно редактировать до 3000 карточек.
+        - Максимальный размер запроса: 10 МБ.
+        - Синхронизация данных занимает до 30 минут.
+
+        :param items: Список карточек для обновления (модель CreateCardVariant).
+        """
+        call = UpdateProductCard(items=items)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # МАРКЕТПЛЕЙС И ОСТАТКИ (FBS)
+    # ==========================================
+
+    async def get_warehouses(
+        self, request_timeout: Optional[int] = None
+    ) -> List[WarehouseItem]:
+        """
+        Получение списка всех складов продавца (Marketplace).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetWarehouses()
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_stocks(
+        self,
+        warehouse_id: int,
+        stocks: List[StockItem],
+        request_timeout: Optional[int] = None,
+    ) -> bool:
+        """
+        Обновление остатков товаров на складе продавца.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        Внимание: Один запрос с ошибкой 409 считается системой за 10 запросов.
+
+        :param warehouse_id: Идентификатор склада продавца.
+        :param stocks: Список объектов StockItem с идентификатором размера (chrtId) и количеством (amount).
+        """
+        call = UpdateStocks(warehouse_id=warehouse_id, stocks=stocks)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # СТАТИСТИКА
+    # ==========================================
 
     async def get_orders(
         self,
@@ -207,39 +289,11 @@ class WBClient:
         request_timeout: Optional[int] = None,
     ) -> list[StatisticOrder]:
         """
-        Возвращает информацию о заказах.
-        Данные в этом отчете предварительные и используются для оперативного контроля.
+        Возвращает информацию о заказах (Статистика).
 
-        ⚠️ ЛИМИТЫ И ПРАВИЛА ИСПОЛЬЗОВАНИЯ API:
-        ---------------------------------------
-        - Обновление данных: Каждые 30 минут.
-        - Хранение данных: Гарантируется не более 90 дней со дня продажи.
-        - Rate Limit: 1 запрос в 1 минуту на один аккаунт продавца (Burst: 1 запрос).
-
-        ОСОБЕННОСТИ ПАГИНАЦИИ (Лимит строк):
-        ---------------------------------------
-        При запросе с flag=0 или без него установлен условный лимит в 80 000 строк.
-        Для получения всех заказов:
-        1. В первом запросе передайте начальную дату в `date_from`.
-        2. Если вернулось 80 000 строк, возьмите значение `last_change_date`
-           из ПОСЛЕДНЕЙ строки ответа и передайте его как `date_from` в следующий запрос.
-        3. Если ответ вернул пустой массив `[]` — все заказы получены.
-
-        ПРИМЕЧАНИЯ:
-        ---------------------------------------
-        - 1 строка = 1 заказ = 1 единица товара.
-        - `srid` — уникальный идентификатор заказа.
-        - В отчет НЕ попадают заказы без подтвержденной оплаты (например, рассрочка).
-          Такие продажи можно найти в детализации отчета о реализации.
-
-        :param date_from: Дата в формате ISO 8601 (например, "2022-03-04T18:08:31")
-                          или объект datetime.
-        :param flag: 0 (по умолчанию) - получить данные, у которых lastChangeDate >= dateFrom.
-                     1 - получить данные, у которых date >= dateFrom.
-        :param request_timeout: Таймаут запроса в секундах.
-        :return: Список объектов StatisticOrder.
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 1 запрос).
+        Условный лимит ответа: 80 000 строк за один запрос.
         """
-
         if isinstance(date_from, datetime):
             date_from_str = date_from.replace(microsecond=0).isoformat()
         else:
