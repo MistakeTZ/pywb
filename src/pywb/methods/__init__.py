@@ -14,8 +14,33 @@ from .create_cards import CreateCards
 from .get_card_list import GetCardsList
 from .get_warehouses import GetWarehouses
 from .update_stocks import UpdateStocks
+from .fbs import (
+    GetPassOffices,
+    CreatePass,
+    GetNewOrders,
+    GetOrdersList,
+    GetOrdersStatuses,
+    CancelOrder,
+    GetOrderStickers,
+    CreateSupply,
+    GetSupplies,
+    AddOrdersToSupply,
+    DeliverSupply,
+    GetStickersResponse,
+)
 
 __all__ = [
+    "GetPassOffices",
+    "CreatePass",
+    "GetNewOrders",
+    "GetOrdersList",
+    "GetOrdersStatuses",
+    "CancelOrder",
+    "GetOrderStickers",
+    "CreateSupply",
+    "GetSupplies",
+    "AddOrdersToSupply",
+    "DeliverSupply",
     "CreateCards",
     "GetCardList",
     "GetWarehouses",
@@ -36,4 +61,5 @@ __all__ = [
     "UpdateUserAccess",
     "DeleteUser",
     "GetNews",
+    "GetStickersResponse",
 ]

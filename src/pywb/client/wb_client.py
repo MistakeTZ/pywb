@@ -21,6 +21,18 @@ from ..methods import (
     DeleteUser,
     UpdateProductCard,
     UpdateStocks,
+    GetNewOrders,
+    CreatePass,
+    GetPassOffices,
+    GetOrdersList,
+    GetOrdersStatuses,
+    CancelOrder,
+    GetOrderStickers,
+    CreateSupply,
+    GetSupplies,
+    AddOrdersToSupply,
+    DeliverSupply,
+    GetStickersResponse,
 )
 
 from ..types import (
@@ -37,6 +49,15 @@ from ..types import (
     WarehouseItem,
     StockItem,
     CreateCardVariant,
+    PassOffice,
+    CreatePassResponse,
+    GetNewOrdersResponse,
+    GetOrdersResponse,
+    GetOrdersStatusesResponse,
+    CreateSupplyResponse,
+    GetSuppliesResponse,
+    CreateSupplyResponse,
+    GetSuppliesResponse,
 )
 
 if TYPE_CHECKING:
@@ -300,4 +321,218 @@ class WBClient:
             date_from_str = date_from
 
         call = GetOrders(dateFrom=date_from_str, flag=flag)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # FBS: ПРОПУСКА (Passes)
+    # ==========================================
+
+    async def get_pass_offices(
+        self, request_timeout: Optional[int] = None
+    ) -> List[PassOffice]:
+        """
+        Получение списка складов, для которых требуется пропуск.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        return await self(GetPassOffices(), request_timeout=request_timeout)
+
+    async def create_pass(
+        self,
+        first_name: str,
+        last_name: str,
+        car_model: str,
+        car_number: str,
+        office_id: int,
+        request_timeout: Optional[int] = None,
+    ) -> CreatePassResponse:
+        """
+        Создание пропуска водителя. Пропуск действует 48 часов.
+
+        ⚠️ ЛИМИТЫ: Максимум 1 запрос в 10 минут на один аккаунт продавца.
+
+        :param first_name: Имя водителя.
+        :param last_name: Фамилия водителя.
+        :param car_model: Марка автомобиля (от 1 до 100 символов).
+        :param car_number: Номер автомобиля (только буквы и цифры, 6-9 символов).
+        :param office_id: ID склада (офиса), куда оформляется пропуск.
+        """
+        call = CreatePass(
+            firstName=first_name,
+            lastName=last_name,
+            carModel=car_model,
+            carNumber=car_number,
+            officeId=office_id,
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # FBS: СБОРОЧНЫЕ ЗАДАНИЯ (Orders)
+    # ==========================================
+
+    async def get_new_orders(
+        self, request_timeout: Optional[int] = None
+    ) -> GetNewOrdersResponse:
+        """
+        Получение списка новых сборочных заданий (статус "new").
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        return await self(GetNewOrders(), request_timeout=request_timeout)
+
+    async def get_orders_list(
+        self,
+        limit: int = 1000,
+        next_cursor: int = 0,
+        date_from: Optional[int] = None,
+        date_to: Optional[int] = None,
+        request_timeout: Optional[int] = None,
+    ) -> GetOrdersResponse:
+        """
+        Получение информации по сборочным заданиям (без текущего статуса).
+        Максимальный период за один запрос — 30 календарных дней.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+
+        :param limit: Количество заказов в ответе (до 1000).
+        :param next_cursor: Параметр пагинации.
+        :param date_from: Дата начала периода в формате Unix Timestamp.
+        :param date_to: Дата конца периода в формате Unix Timestamp.
+        """
+        call = GetOrdersList(
+            limit=limit,
+            next=next_cursor,
+            dateFrom=date_from,
+            dateTo=date_to,
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_orders_statuses(
+        self,
+        orders: List[int],
+        request_timeout: Optional[int] = None,
+    ) -> GetOrdersStatusesResponse:
+        """
+        Получение актуальных статусов сборочных заданий.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+
+        :param orders: Список ID сборочных заданий (от 1 до 1000 шт).
+        """
+        call = GetOrdersStatuses(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def cancel_order(
+        self,
+        order_id: int,
+        request_timeout: Optional[int] = None,
+    ) -> bool:
+        """
+        Отмена сборочного задания продавцом (перевод в статус cancel).
+
+        ⚠️ ЛИМИТЫ: 100 запросов в 1 минуту с шагом 600 мс (Burst: 20 запросов).
+        Один запрос с ошибкой 409 считается системой за 10 запросов.
+
+        :param order_id: ID сборочного задания.
+        """
+        call = CancelOrder(order_id=order_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_order_stickers(
+        self,
+        orders: List[int],
+        sticker_type: str = "png",
+        width: int = 58,
+        height: int = 40,
+        request_timeout: Optional[int] = None,
+    ) -> GetStickersResponse:
+        """
+        Получение этикеток (стикеров) для заказов.
+        Работает только для заказов в статусе confirm (В сборке) и complete (В доставке).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+
+        :param orders: Список ID сборочных заданий (максимум 100 шт за раз).
+        :param sticker_type: Формат этикетки (svg, zplv, zplh, png).
+        :param width: Ширина (58 или 40).
+        :param height: Высота (40 или 30).
+        """
+        call = GetOrderStickers(
+            orders=orders,
+            type=sticker_type,
+            width=width,
+            height=height,
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # FBS: ПОСТАВКИ (Supplies)
+    # ==========================================
+
+    async def create_supply(
+        self,
+        name: str,
+        request_timeout: Optional[int] = None,
+    ) -> CreateSupplyResponse:
+        """
+        Создание новой поставки (FBS).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+
+        :param name: Название поставки (от 1 до 128 символов).
+        """
+        call = CreateSupply(name=name)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_supplies(
+        self,
+        limit: int = 1000,
+        next_cursor: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> GetSuppliesResponse:
+        """
+        Получение списка поставок.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+
+        :param limit: Лимит выдачи (максимум 1000).
+        :param next_cursor: Параметр пагинации.
+        """
+        call = GetSupplies(limit=limit, next=next_cursor)
+        return await self(call, request_timeout=request_timeout)
+
+    async def add_orders_to_supply(
+        self,
+        supply_id: str,
+        orders: List[int],
+        request_timeout: Optional[int] = None,
+    ) -> bool:
+        """
+        Добавление сборочных заданий к поставке.
+        Автоматически переводит задания в статус confirm (В сборке).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        Один запрос с ошибкой 409 считается системой за 10 запросов.
+
+        :param supply_id: ID поставки (например, WB-GI-1234567).
+        :param orders: Список ID сборочных заданий (максимум 100 за запрос).
+        """
+        call = AddOrdersToSupply(supply_id=supply_id, orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def deliver_supply(
+        self,
+        supply_id: str,
+        request_timeout: Optional[int] = None,
+    ) -> bool:
+        """
+        Закрытие поставки и перевод в доставку.
+        Все заказы внутри поставки перейдут в статус complete (В доставке).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        Один запрос с ошибкой 409 считается системой за 10 запросов.
+
+        :param supply_id: ID поставки (например, WB-GI-1234567).
+        """
+        call = DeliverSupply(supply_id=supply_id)
         return await self(call, request_timeout=request_timeout)
