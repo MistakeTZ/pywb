@@ -93,7 +93,7 @@ class AiohttpWBSession(BaseSession):
 
         http_method = method.__http_method__.upper()
 
-        raw_payload = method.model_dump(exclude_none=True)
+        raw_payload = method.model_dump(exclude_none=True, by_alias=True)
 
         prepared_payload = self.prepare_value(raw_payload)
 
@@ -111,7 +111,10 @@ class AiohttpWBSession(BaseSession):
                 timeout=self.timeout if timeout is None else timeout,
                 **request_kwargs,
             ) as resp:
-                raw_result = await resp.text()
+                if method.__returning__ is bytes:
+                    raw_result = await resp.read()
+                else:
+                    raw_result = await resp.text()
 
         except asyncio.TimeoutError as e:
             raise WBNetworkError("Request timeout error", e) from e

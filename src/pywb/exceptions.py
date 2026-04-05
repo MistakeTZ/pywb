@@ -23,6 +23,15 @@ class WBApiError(Exception):
         super().__init__(message)
 
 
+class ClientDecodeError(Exception):
+    """Ошибка при парсинге или валидации ответа от серверов WB"""
+
+    def __init__(self, message: str, original: Exception, data: Any):
+        super().__init__(message)
+        self.original = original
+        self.data = data
+
+
 class BadRequestError(WBApiError):
     """400: Bad request. Check the request syntax."""
 

@@ -21,6 +21,7 @@ from ...exceptions import (
     UnauthorizedError,
     UnprocessableEntityError,
     WBApiError,
+    ClientDecodeError,
 )
 
 if TYPE_CHECKING:
@@ -34,15 +35,6 @@ _JsonDumps = Callable[..., str]
 
 DEFAULT_TIMEOUT: float = 60.0
 WB_PRODUCTION_API: str = "https://common-api.wildberries.ru"
-
-
-class ClientDecodeError(Exception):
-    """Ошибка при парсинге или валидации ответа от серверов WB"""
-
-    def __init__(self, message: str, original: Exception, data: Any):
-        super().__init__(message)
-        self.original = original
-        self.data = data
 
 
 class BaseSession(abc.ABC):
@@ -72,8 +64,22 @@ class BaseSession(abc.ABC):
         """
         Проверяет статус ответа и десериализует его в нужный тип Pydantic.
         """
+        return_type = method.__returning__
+
         if status_code == 204:
+            if return_type is bool:
+                return cast(WBType, True)
             return cast(WBType, None)
+
+        if return_type is bytes:
+            if status_code >= 400:
+                content_str = (
+                    content.decode("utf-8") if isinstance(content, bytes) else content
+                )
+                json_data = self.json_loads(content_str) if content_str else {}
+                self._raise_for_status(status_code, json_data)
+
+            return cast(WBType, content)
 
         try:
             json_data = self.json_loads(content) if content else {}
@@ -83,18 +89,23 @@ class BaseSession(abc.ABC):
         if status_code >= 400:
             self._raise_for_status(status_code, json_data)
 
-        return_type = method.__returning__
-        
-        if return_type in (bool, dict, list, Any):
+        if return_type is bool:
+            return cast(WBType, True)
+
+        if return_type in (dict, list, Any):
             return cast(WBType, json_data)
 
         try:
+            from pydantic import TypeAdapter, ValidationError
+
             adapter = TypeAdapter(return_type)
             validated_data = adapter.validate_python(json_data)
             return cast(WBType, validated_data)
         except ValidationError as e:
-            raise ClientDecodeError("Failed to deserialize response into Pydantic model", e, json_data) from e
-        
+            raise ClientDecodeError(
+                "Failed to deserialize response into Pydantic model", e, json_data
+            ) from e
+
     def _raise_for_status(self, status_code: int, payload: dict[str, Any]) -> None:
         """Внутренний маппинг ошибок HTTP на исключения Python"""
         if status_code == 400:
