@@ -115,7 +115,6 @@ class AiohttpWBSession(BaseSession):
                     raw_result = await resp.read()
                 else:
                     raw_result = await resp.text()
-                print(raw_result)
 
         except asyncio.TimeoutError as e:
             raise WBNetworkError("Request timeout error", e) from e

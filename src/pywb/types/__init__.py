@@ -87,6 +87,7 @@ from .fbw import (
     SupplyFBW,
     TransitTariff,
     WarehouseItemFBW,
+    DateFilterRequest,
 )
 from .finances import (
     BalanceData,
@@ -161,6 +162,7 @@ from .users import (
 )
 
 __all__ = [
+    "DateFilterRequest",
     "WarehousesPalletRates",
     "WarehousesReturnRates",
     "DocumentDownloadItem",

@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ==========================================
@@ -67,12 +67,22 @@ class TransitTariff(BaseModel):
 # ПОСТАВКИ (Supplies)
 # ==========================================
 class DateFilterRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     from_date: str = Field(alias="from")  # ISO 8601 string
     till: str
     type: str  # factDate, createDate, supplyDate, updatedDate
 
+    @field_validator("from_date", "till")
+    @classmethod
+    def validate_iso_date(cls, value: str) -> str:
+        date.fromisoformat(value)
+        return value
+
 
 class SuppliesFiltersRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     dates: Optional[List[DateFilterRequest]] = None
     status_ids: Optional[List[int]] = Field(None, alias="statusIDs")
 
