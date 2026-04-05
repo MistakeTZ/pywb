@@ -56,7 +56,7 @@ class OrderItem(BaseModel):
     crossBorderType: int
     article: str
     colorCode: str
-    deliveryType: str
+    delivery_type: str = Field(alias="deliveryType")
     skus: List[str]
     comment: str
     isZeroOrder: bool
