@@ -140,6 +140,35 @@ from ..methods import (
     GetSupplyPackageFBW,
     GetTransitTariffs,
     GetWarehousesFBW,
+    GetBlockedProducts,
+    GetDeductions,
+    GetMeasurementPenalties,
+    GetPaidStorageFile,
+    GetPaidStorageStatus,
+    GetSales,
+    GetShadowedProducts,
+    CreatePaidStorageReport,
+    GetCsvReportsList,
+    GetFunnelGroupedHistory,
+    GetFunnelHistory,
+    GetFunnelProducts,
+    GetReportFile,
+    GetSearchMainReport,
+    GetStocksGroups,
+    GetStocksWbWarehouses,
+    CreateCsvReport,
+    RetryCsvReport,
+    GetAcceptanceCoefficients,
+    GetBoxTariffs,
+    GetCommission,
+    GetPalletTariffs,
+    GetReturnTariffs,
+    GetDocumentCategories,
+    GetBalance,
+    GetDocumentsList,
+    GetRealizationReport,
+    DownloadDocument,
+    DownloadDocumentsAll,
 )
 
 from ..types import (
@@ -221,6 +250,18 @@ from ..types import (
     SupplyDetailsFBW,
     GoodInSupplyFBW,
     BoxFBW,
+    CommissionResponse,
+    AcceptanceCoefficient,
+    SalesItem,
+    MeasurementPenaltiesResponse,
+    DeductionsResponse,
+    BannedProductItem,
+    BalanceData,
+    DetailReportItem,
+    WarehousesBoxRates,
+    WarehousesPalletRates,
+    WarehousesReturnRates,
+    DocumentDownloadItem,
 )
 
 if TYPE_CHECKING:
@@ -1769,3 +1810,475 @@ class WBClient:
         """
         call = AnswerClaim(id=claim_id, action=action, comment=comment)
         return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # ТАРИФЫ И КОЭФФИЦИЕНТЫ (Tariffs)
+    # ==========================================
+
+    async def get_commission(
+        self, locale: str = "ru", request_timeout: Optional[int] = None
+    ) -> CommissionResponse:
+        """
+        Получение комиссий WB по категориям товаров (по всем моделям продаж).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 2 запроса).
+
+        :param locale: Язык ответа (ru, en, zh).
+        """
+        call = GetCommission(locale=locale)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_box_tariffs(
+        self, date: str, request_timeout: Optional[int] = None
+    ) -> WarehousesBoxRates:
+        """
+        Получение тарифов на логистику и хранение для коробов (соответствуют тарифам Суперсейф).
+
+        ⚠️ ЛИМИТЫ: 60 запросов в 1 минуту с шагом 1 сек (Burst: 5 запросов).
+
+        :param date: Дата тарифов в формате 'YYYY-MM-DD'.
+        :return: Возвращает развернутый объект WarehousesBoxRates напрямую.
+        """
+        call = GetBoxTariffs(date=date)
+        result = await self(call, request_timeout=request_timeout)
+        return result.response.data
+
+    async def get_pallet_tariffs(
+        self, date: str, request_timeout: Optional[int] = None
+    ) -> WarehousesPalletRates:
+        """
+        Получение тарифов на логистику и хранение для паллет.
+
+        ⚠️ ЛИМИТЫ: 60 запросов в 1 минуту с шагом 1 сек (Burst: 5 запросов).
+
+        :param date: Дата тарифов в формате 'YYYY-MM-DD'.
+        :return: Возвращает развернутый объект WarehousesPalletRates напрямую.
+        """
+        call = GetPalletTariffs(date=date)
+        result = await self(call, request_timeout=request_timeout)
+        return result.response.data
+
+    async def get_return_tariffs(
+        self, date: str, request_timeout: Optional[int] = None
+    ) -> WarehousesReturnRates:
+        """
+        Получение тарифов на возврат товаров продавцу и обратную логистику невостребованных товаров.
+
+        ⚠️ ЛИМИТЫ: 60 запросов в 1 минуту с шагом 1 сек (Burst: 5 запросов).
+
+        :param date: Дата тарифов в формате 'YYYY-MM-DD'.
+        :return: Возвращает развернутый объект WarehousesReturnRates напрямую.
+        """
+        call = GetReturnTariffs(date=date)
+        result = await self(call, request_timeout=request_timeout)
+        return result.response.data
+
+    async def get_acceptance_coefficients(
+        self,
+        warehouse_ids: Optional[List[int]] = None,
+        request_timeout: Optional[int] = None,
+    ) -> List[AcceptanceCoefficient]:
+        """
+        Получение коэффициентов приемки (стоимости приемки) на складах на ближайшие 14 дней.
+        Если коэффициент = -1, приемка закрыта. Приемка доступна только если (coefficient = 0 или 1) И (allowUnload = true).
+
+        ⚠️ ЛИМИТЫ: 6 запросов в 1 минуту с шагом 10 сек (Burst: 6 запросов).
+
+        :param warehouse_ids: Список ID складов. Если не передавать, вернет по всем складам.
+        """
+        ids_str = ",".join(map(str, warehouse_ids)) if warehouse_ids else None
+        call = GetAcceptanceCoefficients(warehouseIDs=ids_str)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # ANALYTICS: ВОРОНКА ПРОДАЖ И ПОИСК
+    # ==========================================
+
+    async def get_sales_funnel_products(
+        self, payload: dict, request_timeout: Optional[int] = None
+    ) -> dict:
+        """
+        Статистика карточек товаров за период (Воронка продаж).
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту (Burst: 3).
+        Обновление данных: 1 раз в час.
+
+        :param payload: Словарь с параметрами запроса (модель FunnelProductsRequest).
+        """
+        # Динамически создаем класс с переданными параметрами и распаковываем их
+        call = type(
+            "DynamicFunnelProducts",
+            (GetFunnelProducts,),
+            {"__annotations__": {k: Any for k in payload}},
+        )(**payload)
+        res = await self(call, request_timeout=request_timeout)
+        return res.data
+
+    async def get_search_main_report(
+        self, payload: dict, request_timeout: Optional[int] = None
+    ) -> dict:
+        """
+        Данные для главной страницы отчета по поисковым запросам.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту (Burst: 3).
+
+        :param payload: Словарь с параметрами запроса (модель SearchMainRequest).
+        """
+        call = type(
+            "DynamicSearchReport",
+            (GetSearchMainReport,),
+            {"__annotations__": {k: Any for k in payload}},
+        )(**payload)
+        res = await self(call, request_timeout=request_timeout)
+        return res.data
+
+    # ==========================================
+    # ANALYTICS: ОСТАТКИ (Stocks)
+    # ==========================================
+
+    async def get_analytics_stocks_wb(
+        self,
+        nm_ids: Optional[List[int]] = None,
+        limit: int = 250000,
+        offset: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> List[dict]:
+        """
+        Остатки товаров на складах WB с детализацией по складам и размерам.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту (Burst: 1).
+        Обновление данных: 1 раз в 30 минут.
+        """
+        call = GetStocksWbWarehouses(nmIds=nm_ids, limit=limit, offset=offset)
+        res = await self(call, request_timeout=request_timeout)
+        return res.data.get("items", [])
+
+    async def get_analytics_stocks_groups(
+        self, payload: dict, request_timeout: Optional[int] = None
+    ) -> dict:
+        """
+        Сводные данные по остаткам (Stocks Report -> Group Data).
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту (Burst: 3).
+        """
+        call = type(
+            "DynamicStocksGroup",
+            (GetStocksGroups,),
+            {"__annotations__": {k: Any for k in payload}},
+        )(**payload)
+        res = await self(call, request_timeout=request_timeout)
+        return res.data
+
+    # ==========================================
+    # ANALYTICS: ГЕНЕРАЦИЯ ОТЧЕТОВ (CSV Downloads)
+    # ==========================================
+
+    async def create_csv_report_task(
+        self,
+        task_id: str,
+        report_type: str,
+        params: dict,
+        user_report_name: Optional[str] = None,
+        request_timeout: Optional[int] = None,
+    ) -> str:
+        """
+        Создание задачи на генерацию отчета (CSV в ZIP-архиве).
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту (Burst: 3).
+
+        :param task_id: Уникальный UUID задачи, генерируется вами.
+        :param report_type: Тип отчета (например, DETAIL_HISTORY_REPORT, STOCK_HISTORY_REPORT_CSV).
+        :param params: Параметры отчета.
+        :return: Строка с подтверждением старта генерации.
+        """
+        call = CreateCsvReport(
+            id=task_id,
+            reportType=report_type,
+            userReportName=user_report_name,
+            params=params,
+        )
+        res = await self(call, request_timeout=request_timeout)
+        return res.data
+
+    async def get_csv_reports_list(self, request_timeout: Optional[int] = None) -> list:
+        """
+        Список созданных отчетов и их статусы (WAITING, PROCESSING, SUCCESS, FAILED).
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту (Burst: 3).
+        """
+        res = await self(GetCsvReportsList(), request_timeout=request_timeout)
+        return res.data
+
+    async def retry_csv_report_task(
+        self, download_id: str, request_timeout: Optional[int] = None
+    ) -> str:
+        """
+        Перезапуск упавшей задачи на генерацию отчета.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту (Burst: 3).
+        """
+        res = await self(
+            RetryCsvReport(downloadId=download_id), request_timeout=request_timeout
+        )
+        return res.data
+
+    async def download_csv_report_file(
+        self, download_id: str, request_timeout: Optional[int] = None
+    ) -> bytes:
+        """
+        Скачивание готового отчета.
+        Возвращает бинарные данные (ZIP-архив, внутри которого лежит CSV). Отчет хранится 48 часов.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту (Burst: 3).
+
+        :param download_id: ID отчета (UUID).
+        :return: bytes (сырые данные zip файла). Вы можете сохранить их через `with open('report.zip', 'wb') as f: f.write(result)`
+        """
+        call = GetReportFile(download_id=download_id)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # REPORTS: ПРОДАЖИ (Синхронные)
+    # ==========================================
+
+    async def get_sales_report(
+        self, date_from: str, flag: int = 0, request_timeout: Optional[int] = None
+    ) -> List[SalesItem]:
+        """
+        Получение информации о продажах и возвратах.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 1).
+
+        :param date_from: Дата в формате RFC3339 (например, "2019-06-20T23:59:59").
+        :param flag: 0 - получить измененные с даты (макс 80 000 строк). 1 - за конкретный день.
+        """
+        call = GetSales(dateFrom=date_from, flag=flag)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # REPORTS: АСИНХРОННЫЕ ОТЧЕТЫ (Платное хранение)
+    # ==========================================
+
+    async def create_paid_storage_report(
+        self, date_from: str, date_to: str, request_timeout: Optional[int] = None
+    ) -> str:
+        """
+        Создание задачи на генерацию отчета "Платное хранение" (период максимум 8 дней).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 5).
+
+        :return: task_id (UUID задачи)
+        """
+        call = CreatePaidStorageReport(dateFrom=date_from, dateTo=date_to)
+        res = await self(call, request_timeout=request_timeout)
+        return res.data.task_id
+
+    async def get_paid_storage_status(
+        self, task_id: str, request_timeout: Optional[int] = None
+    ) -> str:
+        """
+        Получение статуса задачи на отчет "Платное хранение".
+        Возможные статусы: new, processing, done, purged, canceled.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 5 секунд.
+        """
+        call = GetPaidStorageStatus(task_id=task_id)
+        res = await self(call, request_timeout=request_timeout)
+        return res.data.status
+
+    async def download_paid_storage_report(
+        self, task_id: str, request_timeout: Optional[int] = None
+    ) -> List[dict]:
+        """
+        Скачивание готового отчета "Платное хранение".
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту.
+        """
+        call = GetPaidStorageFile(task_id=task_id)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # REPORTS: УДЕРЖАНИЯ И ШТРАФЫ
+    # ==========================================
+
+    async def get_measurement_penalties(
+        self,
+        date_to: str,
+        date_from: Optional[str] = None,
+        limit: int = 330,
+        offset: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> MeasurementPenaltiesResponse:
+        """
+        Отчет "Коэффициент логистики и хранения" (удержания за габариты).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту.
+        """
+        call = GetMeasurementPenalties(
+            dateFrom=date_from, dateTo=date_to, limit=limit, offset=offset
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_deductions_report(
+        self,
+        date_to: str,
+        date_from: Optional[str] = None,
+        limit: int = 330,
+        offset: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> DeductionsResponse:
+        """
+        Отчет "Подмены и неверные вложения" (штрафы).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту.
+        """
+        call = GetDeductions(
+            dateFrom=date_from, dateTo=date_to, limit=limit, offset=offset
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # REPORTS: СКРЫТЫЕ / ЗАБЛОКИРОВАННЫЕ КАРТОЧКИ
+    # ==========================================
+
+    async def get_blocked_products(
+        self,
+        sort: str = "nmId",
+        order: str = "asc",
+        request_timeout: Optional[int] = None,
+    ) -> List[BannedProductItem]:
+        """
+        Список заблокированных карточек товаров.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 10 секунд (Burst: 6).
+        """
+        call = GetBlockedProducts(sort=sort, order=order)
+        res = await self(call, request_timeout=request_timeout)
+        return res.report
+
+    async def get_shadowed_products(
+        self,
+        sort: str = "nmId",
+        order: str = "asc",
+        request_timeout: Optional[int] = None,
+    ) -> List[BannedProductItem]:
+        """
+        Список скрытых из каталога карточек товаров (Теневой бан).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 10 секунд (Burst: 6).
+        """
+        call = GetShadowedProducts(sort=sort, order=order)
+        res = await self(call, request_timeout=request_timeout)
+        return res.report
+
+    # ==========================================
+    # FINANCES: БАЛАНС И ОТЧЕТЫ
+    # ==========================================
+
+    async def get_seller_balance(
+        self, request_timeout: Optional[int] = None
+    ) -> BalanceData:
+        """
+        Получение баланса продавца (данные виджета на главной странице).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 1).
+        """
+        return await self(GetBalance(), request_timeout=request_timeout)
+
+    async def get_realization_report(
+        self,
+        date_from: str,
+        date_to: str,
+        rrdid: int = 0,
+        limit: int = 100000,
+        period: str = "weekly",
+        request_timeout: Optional[int] = None,
+    ) -> List[DetailReportItem]:
+        """
+        Получение детализации отчета о реализации.
+        Отчет может быть большим, поэтому для получения всех данных нужно использовать пагинацию
+        через параметр `rrdid` (брать rrd_id из последней строки предыдущего ответа).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 минуту (Burst: 1).
+
+        :param date_from: Дата начала (RFC3339).
+        :param date_to: Дата конца (RFC3339).
+        :param rrdid: ID последней строки (для пагинации). Для первого запроса = 0.
+        :param period: weekly (еженедельный) или daily (ежедневный).
+        """
+        call = GetRealizationReport(
+            dateFrom=date_from, dateTo=date_to, limit=limit, rrdid=rrdid, period=period
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # DOCUMENTS: ЗАКРЫВАЮЩИЕ ДОКУМЕНТЫ
+    # ==========================================
+
+    async def get_document_categories(
+        self, locale: str = "ru", request_timeout: Optional[int] = None
+    ) -> list:
+        """
+        Получение списка категорий документов.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 10 секунд (Burst: 5).
+        """
+        res = await self(
+            GetDocumentCategories(locale=locale), request_timeout=request_timeout
+        )
+        return res.data.get("categories", [])
+
+    async def get_documents_list(
+        self,
+        begin_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        category: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> list:
+        """
+        Получение списка документов продавца.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 10 секунд (Burst: 5).
+        """
+        call = GetDocumentsList(
+            beginTime=begin_time,
+            endTime=end_time,
+            category=category,
+            limit=limit,
+            offset=offset,
+        )
+        res = await self(call, request_timeout=request_timeout)
+        return res.data.get("documents", [])
+
+    async def download_document(
+        self, service_name: str, extension: str, request_timeout: Optional[int] = None
+    ) -> DocumentDownloadItem:
+        """
+        Получение одного документа. Возвращает объект, содержащий base64 строку с файлом.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 10 секунд (Burst: 5).
+        """
+        call = DownloadDocument(serviceName=service_name, extension=extension)
+        res = await self(call, request_timeout=request_timeout)
+        return res.data
+
+    async def download_documents_bulk(
+        self, documents: List[dict], request_timeout: Optional[int] = None
+    ) -> DocumentDownloadItem:
+        """
+        Скачивание нескольких документов одним архивом (до 50 шт).
+        Возвращает объект, содержащий base64 строку с ZIP архивом.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 5 минут (Burst: 5).
+
+        :param documents: Список словарей вида [{"serviceName": "...", "extension": "zip"}, ...]
+        """
+        params = [
+            {"serviceName": doc["serviceName"], "extension": doc["extension"]}
+            for doc in documents
+        ]
+        call = DownloadDocumentsAll(params=params)
+        res = await self(call, request_timeout=request_timeout)
+        return res.data

@@ -9,8 +9,8 @@ class WBDomain(str, Enum):
     MARKETPLACE = "marketplace"
     STATISTICS = "statistics"
     SUPPLIES = "supplies"
-    DOCUMENTS = "documents"
     FINANCE = "finance"
+    DOCUMENTS = "documents"
     COMMON = "common"
     USER_MANAGEMENT = "user_management"
     PROMOTION = "promotion"
@@ -69,11 +69,11 @@ WB_ROUTER: Dict[WBDomain, DomainUrls] = {
     },
     WBDomain.RETURNS: {"prod": "https://returns-api.wildberries.ru", "sandbox": None},
     WBDomain.SUPPLIES: {"prod": "https://supplies-api.wildberries.ru", "sandbox": None},
+    WBDomain.FINANCE: {"prod": "https://finance-api.wildberries.ru", "sandbox": None},
     WBDomain.DOCUMENTS: {
         "prod": "https://documents-api.wildberries.ru",
         "sandbox": None,
     },
-    WBDomain.FINANCE: {"prod": "https://finance-api.wildberries.ru", "sandbox": None},
     WBDomain.COMMON: {"prod": "https://common-api.wildberries.ru", "sandbox": None},
     WBDomain.USER_MANAGEMENT: {
         "prod": "https://user-management-api.wildberries.ru",
