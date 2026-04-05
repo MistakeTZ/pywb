@@ -1,5 +1,7 @@
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
+
 
 # ==========================================
 # ОБЩИЕ ТИПЫ
@@ -47,8 +49,6 @@ class FunnelResponseData(BaseModel):
 # ==========================================
 # ПОИСКОВЫЕ ЗАПРОСЫ (Search Report)
 # ==========================================
-
-
 class SearchMainRequest(BaseModel):
     current_period: DatePeriod = Field(alias="currentPeriod")
     past_period: Optional[DatePeriod] = Field(None, alias="pastPeriod")

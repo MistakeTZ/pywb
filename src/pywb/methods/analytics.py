@@ -1,22 +1,22 @@
-from typing import ClassVar, List, Optional
+from typing import ClassVar
+
 from pydantic import Field
 
-from .base import WBMethod
 from ..enums import WBDomain
 from ..types.analytics import (
-    FunnelResponseData,
-    SearchReportResponse,
-    StocksWbResponse,
-    StocksGroupResponse,
     CreateReportResponse,
+    FunnelResponseData,
     GetReportsListResponse,
+    SearchReportResponse,
+    StocksGroupResponse,
+    StocksWbResponse,
 )
+from .base import WBMethod
+
 
 # ==========================================
 # ВОРОНКА ПРОДАЖ
 # ==========================================
-
-
 class GetFunnelProducts(WBMethod[FunnelResponseData]):
     """Статистика карточек товаров за период."""
 
@@ -50,8 +50,6 @@ class GetFunnelGroupedHistory(WBMethod[FunnelResponseData]):
 # ==========================================
 # ПОИСКОВЫЕ ЗАПРОСЫ
 # ==========================================
-
-
 class GetSearchMainReport(WBMethod[SearchReportResponse]):
     """Формирует данные для главной страницы отчета по поисковым запросам."""
 
@@ -73,8 +71,6 @@ class GetSearchTableDetails(WBMethod[SearchReportResponse]):
 # ==========================================
 # ОСТАТКИ (STOCKS REPORT)
 # ==========================================
-
-
 class GetStocksWbWarehouses(WBMethod[StocksWbResponse]):
     """Остатки товаров на складах WB."""
 
@@ -96,8 +92,6 @@ class GetStocksGroups(WBMethod[StocksGroupResponse]):
 # ==========================================
 # ВЫГРУЗКА CSV ОТЧЕТОВ
 # ==========================================
-
-
 class CreateCsvReport(WBMethod[CreateReportResponse]):
     """Запуск генерации отчета."""
 

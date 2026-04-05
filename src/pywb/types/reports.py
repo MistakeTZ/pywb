@@ -1,6 +1,8 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
+
 
 # ==========================================
 # ПРОДАЖИ И ОСТАТКИ (Синхронные)
@@ -39,8 +41,6 @@ class SalesItem(BaseModel):
 # ==========================================
 # АСИНХРОННЫЕ ОТЧЕТЫ (Задачи)
 # ==========================================
-
-
 class TaskIdData(BaseModel):
     task_id: str = Field(alias="taskId")
 

@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
+
 
 # ==========================================
 # ВАРИАНТЫ ПРИЕМКИ (Acceptance Options)
 # ==========================================
-
-
 class Good(BaseModel):
     quantity: int
     barcode: str
@@ -40,8 +40,6 @@ class OptionsResultModel(BaseModel):
 # ==========================================
 # ИНФОРМАЦИЯ О СКЛАДАХ И ТАРИФАХ
 # ==========================================
-
-
 class WarehouseItemFBW(BaseModel):
     id: int = Field(alias="ID")
     name: str
@@ -68,8 +66,6 @@ class TransitTariff(BaseModel):
 # ==========================================
 # ПОСТАВКИ (Supplies)
 # ==========================================
-
-
 class DateFilterRequest(BaseModel):
     from_date: str = Field(alias="from")  # ISO 8601 string
     till: str
@@ -128,8 +124,6 @@ class SupplyDetailsFBW(BaseModel):
 # ==========================================
 # ТОВАРЫ И КОРОБА В ПОСТАВКЕ
 # ==========================================
-
-
 class GoodInSupplyFBW(BaseModel):
     barcode: str
     vendor_code: str = Field(alias="vendorCode")

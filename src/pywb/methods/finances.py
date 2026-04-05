@@ -1,22 +1,22 @@
 from typing import ClassVar, List, Optional
-from pydantic import BaseModel, Field
 
-from .base import WBMethod
+from pydantic import Field
+
 from ..enums import WBDomain
 from ..types.finances import (
     BalanceData,
     DetailReportItem,
     DocumentCategoriesData,
-    DocumentListData,
     DocumentDownloadData,
+    DocumentListData,
     DownloadParam,
 )
+from .base import WBMethod
+
 
 # ==========================================
 # БАЛАНС И ФИНАНСОВЫЕ ОТЧЕТЫ
 # ==========================================
-
-
 class GetBalance(WBMethod[BalanceData]):
     """Получение баланса продавца."""
 
@@ -44,8 +44,6 @@ class GetRealizationReport(WBMethod[List[DetailReportItem]]):
 # ==========================================
 # ДОКУМЕНТЫ
 # ==========================================
-
-
 class GetDocumentCategories(WBMethod[DocumentCategoriesData]):
     """Категории документов."""
 

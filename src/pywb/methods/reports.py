@@ -1,25 +1,22 @@
-from typing import ClassVar, List, Optional, Any
+from typing import Any, ClassVar, List, Optional
+
 from pydantic import Field
 
-from .base import WBMethod
 from ..enums import WBDomain
 from ..types.reports import (
-    SalesItem,
-    CreateTaskResponse,
-    TaskStatusResponse,
-    MeasurementPenaltiesResponse,
-    DeductionsResponse,
-    RegionSaleResponse,
-    BrandShareResponse,
     BannedProductsResponse,
-    GoodsReturnResponse,
+    CreateTaskResponse,
+    DeductionsResponse,
+    MeasurementPenaltiesResponse,
+    SalesItem,
+    TaskStatusResponse,
 )
+from .base import WBMethod
+
 
 # ==========================================
 # ПРОДАЖИ (Sales)
 # ==========================================
-
-
 class GetSales(WBMethod[List[SalesItem]]):
     """Получение информации о продажах и возвратах."""
 
@@ -35,8 +32,6 @@ class GetSales(WBMethod[List[SalesItem]]):
 # ==========================================
 # АСИНХРОННЫЕ ОТЧЕТЫ (Платное хранение)
 # ==========================================
-
-
 class CreatePaidStorageReport(WBMethod[CreateTaskResponse]):
     """Запуск генерации отчета по платному хранению."""
 
@@ -82,8 +77,6 @@ class GetPaidStorageFile(
 # ==========================================
 # ШТРАФЫ И УДЕРЖАНИЯ (Retentions)
 # ==========================================
-
-
 class GetMeasurementPenalties(WBMethod[MeasurementPenaltiesResponse]):
     """Удержания за габариты."""
 
@@ -117,8 +110,6 @@ class GetDeductions(WBMethod[DeductionsResponse]):
 # ==========================================
 # СКРЫТЫЕ И ЗАБЛОКИРОВАННЫЕ ТОВАРЫ
 # ==========================================
-
-
 class GetBlockedProducts(WBMethod[BannedProductsResponse]):
     """Заблокированные карточки."""
 

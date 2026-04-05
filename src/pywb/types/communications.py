@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import Optional, List, TypeVar, Generic, Any
+from typing import Any, Generic, List, Optional, TypeVar
+
 from pydantic import BaseModel, Field
 
 T = TypeVar("T")
@@ -24,8 +25,6 @@ class WBChatResponse(BaseModel, Generic[T]):
 # ==========================================
 # ВОПРОСЫ И ОТЗЫВЫ
 # ==========================================
-
-
 class UnseenFQ(BaseModel):
     has_new_questions: bool = Field(alias="hasNewQuestions")
     has_new_feedbacks: bool = Field(alias="hasNewFeedbacks")
@@ -110,8 +109,6 @@ class GetFeedbacksData(BaseModel):
 # ==========================================
 # ЧАТЫ С ПОКУПАТЕЛЯМИ
 # ==========================================
-
-
 class ChatGoodCard(BaseModel):
     date: datetime
     nm_id: int = Field(alias="nmID")
@@ -170,8 +167,6 @@ class ChatEventsResult(BaseModel):
 # ==========================================
 # ЗАЯВКИ НА ВОЗВРАТ
 # ==========================================
-
-
 class ClaimItem(BaseModel):
     id: str
     claim_type: int

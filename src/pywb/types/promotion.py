@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
+
 
 # ==========================================
 # СПИСКИ И ИНФОРМАЦИЯ О КАМПАНИЯХ
 # ==========================================
-
-
 class AdvertListItem(BaseModel):
     advert_id: int = Field(alias="advertId")
     change_time: datetime = Field(alias="changeTime")
@@ -74,8 +74,6 @@ class GetAdvertsResponse(BaseModel):
 # ==========================================
 # СОЗДАНИЕ И СТАВКИ (Bids)
 # ==========================================
-
-
 class BidItem(BaseModel):
     type: str
     value: int
@@ -93,8 +91,6 @@ class MinBidsResponse(BaseModel):
 # ==========================================
 # ФИНАНСЫ (Бюджет, Баланс)
 # ==========================================
-
-
 class CashbackInfo(BaseModel):
     sum: int
     percent: int
@@ -141,8 +137,6 @@ class PaymentItem(BaseModel):
 # ==========================================
 # СТАТИСТИКА
 # ==========================================
-
-
 class StatNmItem(BaseModel):
     nm_id: int = Field(alias="nmId")
     name: str
@@ -207,8 +201,6 @@ class FullStatsItem(BaseModel):
 # ==========================================
 # КАЛЕНДАРЬ АКЦИЙ
 # ==========================================
-
-
 class PromoItem(BaseModel):
     id: int
     name: str

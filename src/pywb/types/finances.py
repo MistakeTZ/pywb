@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional, List, Any
+from typing import Any, List, Optional
+
 from pydantic import BaseModel, Field
+
 
 # ==========================================
 # БАЛАНС
 # ==========================================
-
-
 class BalanceData(BaseModel):
     currency: str
     current: float
@@ -16,8 +16,6 @@ class BalanceData(BaseModel):
 # ==========================================
 # ОТЧЕТ О РЕАЛИЗАЦИИ (Детализация)
 # ==========================================
-
-
 class DetailReportItem(BaseModel):
     realizationreport_id: Optional[int] = None
     date_from: Optional[datetime] = None
@@ -111,8 +109,6 @@ class DetailReportItem(BaseModel):
 # ==========================================
 # ДОКУМЕНТЫ
 # ==========================================
-
-
 class DocumentCategory(BaseModel):
     name: str
     title: str

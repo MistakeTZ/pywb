@@ -1,138 +1,95 @@
-from .base import WBMethod, WT
-from .ping import Ping, PingContent, PingAnalytics
-from .statistics import GetOrders
-from .update_product_card import UpdateProductCard
-from .get_seller_info import GetSellerInfo
-from .get_seller_rating import GetSellerRating
-from .get_jam_subscription import GetJamSubscription
-from .get_users import GetUsers
-from .create_invite import CreateInvite
-from .update_user_access import UpdateUserAccess
-from .delete_user import DeleteUser
-from .get_news import GetNews
-from .create_cards import CreateCards
-from .get_card_list import GetCardsList
-from .get_warehouses import GetWarehouses
-from .update_stocks import UpdateStocks
-from .fbs import (
-    GetPassOffices,
-    CreatePass,
-    GetNewOrders,
-    GetOrdersList,
-    GetOrdersStatuses,
-    CancelOrder,
-    GetOrderStickers,
-    CreateSupply,
-    GetSupplies,
-    AddOrdersToSupply,
-    DeliverSupply,
-    GetStickersResponse,
+from .analytics import (
+    CreateCsvReport,
+    GetCsvReportsList,
+    GetFunnelGroupedHistory,
+    GetFunnelHistory,
+    GetFunnelProducts,
+    GetReportFile,
+    GetSearchMainReport,
+    GetStocksGroups,
+    GetStocksWbWarehouses,
+    RetryCsvReport,
 )
-from .dbw import (
-    GetNewOrdersDBW,
-    GetOrdersDBW,
-    GetDeliveryDateDBW,
-    GetBuyerInfoDBW,
-    GetCourierInfoDBW,
-    GetOrdersStatusesDBW,
-    GetOrderMetaDBW,
-    ConfirmOrderDBW,
-    AssembleOrderDBW,
-    CancelOrderDBW,
-    GetOrderStickersDBW,
-    DeleteOrderMetaDBW,
-    UpdateOrderMetaSgtinDBW,
-    UpdateOrderMetaUinDBW,
-    UpdateOrderMetaImeiDBW,
-    UpdateOrderMetaGtinDBW,
-)
-from .dbs import (
-    GetNewOrdersDBS,
-    GetOrdersDBS,
-    GetOrderGroupsInfoDBS,
-    GetBuyerInfoDBS,
-    GetB2BBuyerInfoDBS,
-    GetDeliveryDateDBS,
-    GetOrderStickersDBS,
-    GetOrdersStatusesDBS,
-    ConfirmOrdersDBS,
-    CancelOrdersDBS,
-    GetOrdersDBS,
-    DeliverOrdersDBS,
-    DeleteOrdersMetaDBS,
-    UpdateOrdersMetaSgtinDBS,
-    UpdateOrdersMetaUinDBS,
-    UpdateOrdersMetaImeiDBS,
-    UpdateOrdersMetaGtinDBS,
-    UpdateOrdersMetaCustomsDBS,
-    UpdateMetaCustomsItem,
-    UpdateMetaGtinItem,
-    UpdateMetaImeiItem,
-    UpdateMetaUinItem,
-    UpdateMetaSgtinItem,
-    RejectOrdersDBS,
-    ReceiveOrdersDBS,
-    GetOrdersMetaDBS,
-)
+from .base import WT, WBMethod
 from .communications import (
-    UnseenFQ,
-    GetQuestionsData,
-    GetFeedbacksData,
+    AnswerClaim,
     AnswerFeedback,
-    ChatItem,
     ChatEventsResult,
-    GetClaimsResponse,
+    ChatItem,
     GetChatEvents,
     GetChats,
     GetClaims,
+    GetClaimsResponse,
     GetFeedbacks,
+    GetFeedbacksData,
     GetQuestions,
+    GetQuestionsData,
     GetUnseenFQ,
     PatchQuestion,
     SendChatMessage,
-    AnswerClaim,
+    UnseenFQ,
 )
-from .promotion import (
-    CountResponse,
-    GetAdvertsResponse,
-    BalanceResponse,
-    BudgetResponse,
-    DepositResponse,
-    UpdItem,
-    FullStatsItem,
-    GetAdverts,
-    GetBalance,
-    GetBudget,
-    GetCalendarPromotions,
-    GetCampaignsCount,
-    GetFullStats,
-    GetUpd,
-    StopCampaign,
-    PauseCampaign,
-    StartCampaign,
-    RenameCampaign,
-    DepositBudget,
+from .create_cards import CreateCards
+from .create_invite import CreateInvite
+from .dbs import (
+    CancelOrdersDBS,
+    ConfirmOrdersDBS,
+    DeleteOrdersMetaDBS,
+    DeliverOrdersDBS,
+    GetB2BBuyerInfoDBS,
+    GetBuyerInfoDBS,
+    GetDeliveryDateDBS,
+    GetNewOrdersDBS,
+    GetOrderGroupsInfoDBS,
+    GetOrdersDBS,
+    GetOrdersMetaDBS,
+    GetOrdersStatusesDBS,
+    GetOrderStickersDBS,
+    ReceiveOrdersDBS,
+    RejectOrdersDBS,
+    UpdateMetaCustomsItem,
+    UpdateMetaGtinItem,
+    UpdateMetaImeiItem,
+    UpdateMetaSgtinItem,
+    UpdateMetaUinItem,
+    UpdateOrdersMetaCustomsDBS,
+    UpdateOrdersMetaGtinDBS,
+    UpdateOrdersMetaImeiDBS,
+    UpdateOrdersMetaSgtinDBS,
+    UpdateOrdersMetaUinDBS,
 )
-from .in_store_pickup import (
-    GetNewOrdersCCResponse,
-    GetOrdersCCResponse,
-    ClientInfoCCResp,
-    OrderStatusesCCResp,
-    GetStickersCCResponse,
-    GetOrderMetaCCResponse,
-    GetNewOrdersCC,
-    GetBuyerInfoCC,
-    GetOrderMetaCC,
-    GetOrdersCC,
-    GetOrdersStatusesCC,
-    GetOrderStickersCC,
-    UpdateOrderMetaGtinCC,
-    UpdateOrderMetaImeiCC,
-    UpdateOrderMetaSgtinCC,
-    UpdateOrderMetaUinCC,
-    CancelOrderCC,
-    DeliverOrderCC,
-    DeleteOrderMetaCC,
+from .dbw import (
+    AssembleOrderDBW,
+    CancelOrderDBW,
+    ConfirmOrderDBW,
+    DeleteOrderMetaDBW,
+    GetBuyerInfoDBW,
+    GetCourierInfoDBW,
+    GetDeliveryDateDBW,
+    GetNewOrdersDBW,
+    GetOrderMetaDBW,
+    GetOrdersDBW,
+    GetOrdersStatusesDBW,
+    GetOrderStickersDBW,
+    UpdateOrderMetaGtinDBW,
+    UpdateOrderMetaImeiDBW,
+    UpdateOrderMetaSgtinDBW,
+    UpdateOrderMetaUinDBW,
+)
+from .delete_user import DeleteUser
+from .fbs import (
+    AddOrdersToSupply,
+    CancelOrder,
+    CreatePass,
+    CreateSupply,
+    DeliverSupply,
+    GetNewOrders,
+    GetOrdersList,
+    GetOrdersStatuses,
+    GetOrderStickers,
+    GetPassOffices,
+    GetStickersResponse,
+    GetSupplies,
 )
 from .fbw import (
     GetAcceptanceOptions,
@@ -143,7 +100,66 @@ from .fbw import (
     GetTransitTariffs,
     GetWarehousesFBW,
 )
+from .finances import (
+    DownloadDocument,
+    DownloadDocumentsAll,
+    GetBalance,
+    GetDocumentCategories,
+    GetDocumentsList,
+    GetRealizationReport,
+)
+from .get_card_list import GetCardsList
+from .get_jam_subscription import GetJamSubscription
+from .get_news import GetNews
+from .get_seller_info import GetSellerInfo
+from .get_seller_rating import GetSellerRating
+from .get_users import GetUsers
+from .get_warehouses import GetWarehouses
+from .in_store_pickup import (
+    CancelOrderCC,
+    ClientInfoCCResp,
+    DeleteOrderMetaCC,
+    DeliverOrderCC,
+    GetBuyerInfoCC,
+    GetNewOrdersCC,
+    GetNewOrdersCCResponse,
+    GetOrderMetaCC,
+    GetOrderMetaCCResponse,
+    GetOrdersCC,
+    GetOrdersCCResponse,
+    GetOrdersStatusesCC,
+    GetOrderStickersCC,
+    GetStickersCCResponse,
+    OrderStatusesCCResp,
+    UpdateOrderMetaGtinCC,
+    UpdateOrderMetaImeiCC,
+    UpdateOrderMetaSgtinCC,
+    UpdateOrderMetaUinCC,
+)
+from .ping import Ping, PingAnalytics, PingContent
+from .promotion import (
+    BalanceResponse,
+    BudgetResponse,
+    CountResponse,
+    DepositBudget,
+    DepositResponse,
+    FullStatsItem,
+    GetAdverts,
+    GetAdvertsResponse,
+    GetBudget,
+    GetCalendarPromotions,
+    GetCampaignsCount,
+    GetFullStats,
+    GetPromoBalance,
+    GetUpd,
+    PauseCampaign,
+    RenameCampaign,
+    StartCampaign,
+    StopCampaign,
+    UpdItem,
+)
 from .reports import (
+    CreatePaidStorageReport,
     GetBlockedProducts,
     GetDeductions,
     GetMeasurementPenalties,
@@ -151,20 +167,8 @@ from .reports import (
     GetPaidStorageStatus,
     GetSales,
     GetShadowedProducts,
-    CreatePaidStorageReport,
 )
-from .analytics import (
-    GetCsvReportsList,
-    GetFunnelGroupedHistory,
-    GetFunnelHistory,
-    GetFunnelProducts,
-    GetReportFile,
-    GetSearchMainReport,
-    GetStocksGroups,
-    GetStocksWbWarehouses,
-    CreateCsvReport,
-    RetryCsvReport,
-)
+from .statistics import GetOrders
 from .tariffs import (
     GetAcceptanceCoefficients,
     GetBoxTariffs,
@@ -172,15 +176,9 @@ from .tariffs import (
     GetPalletTariffs,
     GetReturnTariffs,
 )
-from .finances import (
-    GetDocumentCategories,
-    GetBalance,
-    GetDocumentsList,
-    GetRealizationReport,
-    DownloadDocument,
-    DownloadDocumentsAll,
-)
-
+from .update_product_card import UpdateProductCard
+from .update_stocks import UpdateStocks
+from .update_user_access import UpdateUserAccess
 
 __all__ = [
     "GetBlockedProducts",
@@ -207,7 +205,7 @@ __all__ = [
     "GetPalletTariffs",
     "GetReturnTariffs",
     "GetDocumentCategories",
-    "GetBalance",
+    "GetPromoBalance",
     "GetDocumentsList",
     "GetRealizationReport",
     "DownloadDocument",

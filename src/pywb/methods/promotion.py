@@ -63,7 +63,7 @@ class StopCampaign(ChangeCampaignStatus):
 # ==========================================
 # ФИНАНСЫ И БЮДЖЕТ
 # ==========================================
-class GetBalance(WBMethod[BalanceResponse]):
+class GetPromoBalance(WBMethod[BalanceResponse]):
     """Получение баланса, счета и бонусов."""
 
     __http_method__: ClassVar[str] = "GET"

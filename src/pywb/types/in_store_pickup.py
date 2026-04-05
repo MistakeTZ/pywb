@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
+
 
 # ==========================================
 # ОБЩИЕ МОДЕЛИ ЗАКАЗОВ (Click & Collect)
 # ==========================================
-
-
 class AddressCC(BaseModel):
     full_address: Optional[str] = Field(None, alias="fullAddress")
     longitude: float
@@ -77,8 +77,6 @@ class GetOrdersCCResponse(BaseModel):
 # ==========================================
 # ИНФОРМАЦИЯ О КЛИЕНТАХ, СТАТУСАХ И СТИКЕРАХ
 # ==========================================
-
-
 class ClientInfoCC(BaseModel):
     order_id: int = Field(alias="orderId")
     first_name: str = Field(alias="firstName")
@@ -119,8 +117,6 @@ class GetStickersCCResponse(BaseModel):
 # ==========================================
 # МЕТАДАННЫЕ
 # ==========================================
-
-
 class MetaItemString(BaseModel):
     value: Optional[str] = None
 
