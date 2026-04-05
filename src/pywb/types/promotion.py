@@ -100,8 +100,8 @@ class CashbackInfo(BaseModel):
 class BalanceResponse(BaseModel):
     balance: int
     net: int
-    bonus: int
     cashbacks: Optional[List[CashbackInfo]] = None
+    currency: str
 
 
 class BudgetResponse(BaseModel):

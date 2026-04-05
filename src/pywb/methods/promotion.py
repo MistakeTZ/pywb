@@ -13,6 +13,7 @@ from ..types import (
     FullStatsItem,
 )
 
+
 # ==========================================
 # УПРАВЛЕНИЕ КАМПАНИЯМИ
 # ==========================================
@@ -23,6 +24,8 @@ class GetCampaignsCount(WBMethod[CountResponse]):
     __api_path__: ClassVar[str] = "/adv/v1/promotion/count"
     __domain__: ClassVar[WBDomain] = WBDomain.PROMOTION
     __returning__: ClassVar[type] = CountResponse
+
+
 class GetAdverts(WBMethod[GetAdvertsResponse]):
     """Получение информации о кампаниях по ID, статусам или типу оплаты."""
 
@@ -34,6 +37,8 @@ class GetAdverts(WBMethod[GetAdvertsResponse]):
     ids: Optional[str] = None
     statuses: Optional[str] = None
     payment_type: Optional[str] = None
+
+
 class RenameCampaign(WBMethod[bool]):
     """Переименование кампании."""
 
@@ -44,6 +49,8 @@ class RenameCampaign(WBMethod[bool]):
 
     advert_id: int = Field(alias="advertId")
     name: str
+
+
 class ChangeCampaignStatus(WBMethod[bool]):
     """Базовый класс для изменения статуса (запуск, пауза, остановка)."""
 
@@ -52,10 +59,16 @@ class ChangeCampaignStatus(WBMethod[bool]):
     __returning__: ClassVar[type] = bool
 
     id: int
+
+
 class StartCampaign(ChangeCampaignStatus):
     __api_path__: ClassVar[str] = "/adv/v0/start"
+
+
 class PauseCampaign(ChangeCampaignStatus):
     __api_path__: ClassVar[str] = "/adv/v0/pause"
+
+
 class StopCampaign(ChangeCampaignStatus):
     __api_path__: ClassVar[str] = "/adv/v0/stop"
 
@@ -70,6 +83,8 @@ class GetPromoBalance(WBMethod[BalanceResponse]):
     __api_path__: ClassVar[str] = "/adv/v1/balance"
     __domain__: ClassVar[WBDomain] = WBDomain.PROMOTION
     __returning__: ClassVar[type] = BalanceResponse
+
+
 class GetBudget(WBMethod[BudgetResponse]):
     """Получение бюджета конкретной кампании."""
 
@@ -79,6 +94,8 @@ class GetBudget(WBMethod[BudgetResponse]):
     __returning__: ClassVar[type] = BudgetResponse
 
     id: int
+
+
 class DepositBudget(WBMethod[DepositResponse]):
     """Пополнение бюджета кампании."""
 
@@ -95,6 +112,8 @@ class DepositBudget(WBMethod[DepositResponse]):
     @property
     def __api_path__(self) -> str:
         return f"/adv/v1/budget/deposit?id={self.id}"
+
+
 class GetUpd(WBMethod[List[UpdItem]]):
     """История затрат (списаний)."""
 
@@ -121,6 +140,8 @@ class GetFullStats(WBMethod[List[FullStatsItem]]):
     ids: str
     begin_date: str = Field(alias="beginDate")
     end_date: str = Field(alias="endDate")
+
+
 class GetCalendarPromotions(
     WBMethod[dict]
 ):  # Возвращает обертку {"data": {"promotions": [...]}}
