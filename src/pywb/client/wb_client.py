@@ -79,6 +79,67 @@ from ..methods import (
     RejectOrdersDBS,
     ReceiveOrdersDBS,
     GetOrdersMetaDBS,
+    UnseenFQ,
+    GetQuestionsData,
+    GetFeedbacksData,
+    AnswerFeedback,
+    ChatItem,
+    ChatEventsResult,
+    GetClaimsResponse,
+    GetChatEvents,
+    GetChats,
+    GetClaims,
+    GetFeedbacks,
+    GetQuestions,
+    GetUnseenFQ,
+    PatchQuestion,
+    SendChatMessage,
+    AnswerClaim,
+    CountResponse,
+    GetAdvertsResponse,
+    BalanceResponse,
+    BudgetResponse,
+    DepositResponse,
+    UpdItem,
+    FullStatsItem,
+    GetAdverts,
+    GetBalance,
+    GetBudget,
+    GetCalendarPromotions,
+    GetCampaignsCount,
+    GetFullStats,
+    GetUpd,
+    StopCampaign,
+    PauseCampaign,
+    StartCampaign,
+    RenameCampaign,
+    DepositBudget,
+    GetNewOrdersCCResponse,
+    GetOrdersCCResponse,
+    ClientInfoCCResp,
+    OrderStatusesCCResp,
+    GetStickersCCResponse,
+    GetOrderMetaCCResponse,
+    GetNewOrdersCC,
+    GetBuyerInfoCC,
+    GetOrderMetaCC,
+    GetOrdersCC,
+    GetOrdersStatusesCC,
+    GetOrderStickersCC,
+    UpdateOrderMetaGtinCC,
+    UpdateOrderMetaImeiCC,
+    UpdateOrderMetaSgtinCC,
+    UpdateOrderMetaUinCC,
+    CancelOrderCC,
+    DeliverOrderCC,
+    DeleteOrderMetaCC,
+    GetAcceptanceOptions,
+    GetSuppliesFBW,
+    GetSupplyDetailsFBW,
+    GetSupplyGoodsFBW,
+    GetSupplyPackageFBW,
+    GetTransitTariffs,
+    GetWarehousesFBW,
 )
 
 from ..types import (
@@ -132,6 +193,34 @@ from ..types import (
     DeliveryDateInfo,
     GetStickersDBSResponse,
     OrderStatusesV2Resp,
+    GetNewOrdersCCResponse,
+    GetOrdersCCResponse,
+    ClientInfoCCResp,
+    OrderStatusesCCResp,
+    GetStickersCCResponse,
+    GetOrderMetaCCResponse,
+    CountResponse,
+    GetAdvertsResponse,
+    BalanceResponse,
+    BudgetResponse,
+    DepositResponse,
+    UpdItem,
+    FullStatsItem,
+    UnseenFQ,
+    GetQuestionsData,
+    GetFeedbacksData,
+    ChatItem,
+    ChatEventsResult,
+    GetClaimsResponse,
+    Good,
+    OptionsResultModel,
+    WarehouseItemFBW,
+    TransitTariff,
+    SuppliesFiltersRequest,
+    SupplyFBW,
+    SupplyDetailsFBW,
+    GoodInSupplyFBW,
+    BoxFBW,
 )
 
 if TYPE_CHECKING:
@@ -1078,4 +1167,605 @@ class WBClient:
         ⚠️ ЛИМИТЫ: 500 запросов в 1 минуту с шагом 120 мс (Burst: 20 запросов).
         """
         call = UpdateOrdersMetaCustomsDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # ИНТЕГРАЦИЯ C&C: Самовывоз из магазина
+    # ==========================================
+
+    async def get_new_orders_cc(
+        self, request_timeout: Optional[int] = None
+    ) -> GetNewOrdersCCResponse:
+        """
+        Получение списка новых заказов Самовывоз из магазина (Click & Collect).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        return await self(GetNewOrdersCC(), request_timeout=request_timeout)
+
+    async def get_orders_cc(
+        self,
+        date_from: int,
+        date_to: int,
+        limit: int = 1000,
+        next_cursor: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> GetOrdersCCResponse:
+        """
+        Получение завершенных или отмененных заказов (Click & Collect).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrdersCC(
+            dateFrom=date_from, dateTo=date_to, limit=limit, next=next_cursor
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_orders_statuses_cc(
+        self, orders: List[int], request_timeout: Optional[int] = None
+    ) -> OrderStatusesCCResp:
+        """
+        Получение актуальных статусов заказов Click & Collect.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrdersStatusesCC(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def deliver_order_cc(
+        self, order_id: int, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Перевод заказа Самовывоз из магазина в статус "Выдан" (deliver).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = DeliverOrderCC(order_id=order_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def cancel_order_cc(
+        self, order_id: int, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Отмена заказа Самовывоз из магазина продавцом (cancel).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = CancelOrderCC(order_id=order_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_order_stickers_cc(
+        self,
+        orders: List[int],
+        sticker_type: str = "png",
+        width: int = 58,
+        height: int = 40,
+        request_timeout: Optional[int] = None,
+    ) -> GetStickersCCResponse:
+        """
+        Получение этикеток для заказов Самовывоз из магазина.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrderStickersCC(
+            orders=orders, type=sticker_type, width=width, height=height
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_buyer_info_cc(
+        self, orders: List[int], request_timeout: Optional[int] = None
+    ) -> ClientInfoCCResp:
+        """
+        Получение информации о покупателе для заказов Самовывоз из магазина.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetBuyerInfoCC(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # C&C: УПРАВЛЕНИЕ МЕТАДАННЫМИ
+    # ==========================================
+
+    async def get_order_meta_cc(
+        self, order_id: int, request_timeout: Optional[int] = None
+    ) -> GetOrderMetaCCResponse:
+        """
+        Получение привязанных метаданных (УИН, КиЗ, IMEI, GTIN) заказа C&C.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrderMetaCC(order_id=order_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def delete_order_meta_cc(
+        self, order_id: int, key: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Удаление метаданных заказа C&C по ключу (imei, uin, gtin, sgtin).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = DeleteOrderMetaCC(order_id=order_id, key=key)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_order_meta_sgtin_cc(
+        self, order_id: int, sgtins: List[str], request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Добавление кодов Data Matrix (Честный ЗНАК) к заказу C&C.
+
+        ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrderMetaSgtinCC(order_id=order_id, sgtins=sgtins)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_order_meta_uin_cc(
+        self, order_id: int, uin: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Добавление УИНа к заказу C&C.
+
+        ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrderMetaUinCC(order_id=order_id, uin=uin)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_order_meta_imei_cc(
+        self, order_id: int, imei: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Добавление IMEI к заказу C&C.
+
+        ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrderMetaImeiCC(order_id=order_id, imei=imei)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_order_meta_gtin_cc(
+        self, order_id: int, gtin: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Добавление GTIN (РБ) к заказу C&C.
+
+        ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrderMetaGtinCC(order_id=order_id, gtin=gtin)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # FBW: ФОРМИРОВАНИЕ ПОСТАВОК
+    # ==========================================
+
+    async def get_acceptance_options(
+        self,
+        items: List[Good],
+        warehouse_id: Optional[int] = None,
+        request_timeout: Optional[int] = None,
+    ) -> OptionsResultModel:
+        """
+        Получение информации о доступных складах и типах упаковки для поставки.
+        Список складов определяется по штрихкоду и количеству товара.
+
+        ⚠️ ЛИМИТЫ: 6 запросов в 10 секунд (Burst: 6 запросов).
+
+        :param items: Список товаров с их количеством (модель Good).
+        :param warehouse_id: ID конкретного склада (опционально, если нужно проверить один склад).
+        """
+        call = GetAcceptanceOptions(items=items, warehouseID=warehouse_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_warehouses_fbw(
+        self, request_timeout: Optional[int] = None
+    ) -> List[WarehouseItemFBW]:
+        """
+        Получение списка складов Wildberries.
+
+        ⚠️ ЛИМИТЫ: 6 запросов в 10 секунд (Burst: 6 запросов).
+        """
+        return await self(GetWarehousesFBW(), request_timeout=request_timeout)
+
+    async def get_transit_tariffs(
+        self, request_timeout: Optional[int] = None
+    ) -> List[TransitTariff]:
+        """
+        Получение информации о доступных транзитных направлениях и их тарифах.
+
+        ⚠️ ЛИМИТЫ: 6 запросов в 10 секунд (Burst: 10 запросов).
+        """
+        return await self(GetTransitTariffs(), request_timeout=request_timeout)
+
+    # ==========================================
+    # FBW: ИНФОРМАЦИЯ О ПОСТАВКАХ
+    # ==========================================
+
+    async def get_supplies_fbw(
+        self,
+        filter_data: SuppliesFiltersRequest,
+        limit: int = 1000,
+        offset: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> List[SupplyFBW]:
+        """
+        Получение списка поставок FBW (со склада WB). По умолчанию возвращаются последние 1000 поставок.
+
+        ⚠️ ЛИМИТЫ: 30 запросов в 2 секунды (Burst: 10 запросов).
+
+        :param filter_data: Данные для фильтрации по датам и статусам (SuppliesFiltersRequest).
+        :param limit: Количество возвращаемых элементов (максимум 1000).
+        :param offset: Смещение для пагинации.
+        """
+        call = GetSuppliesFBW(filter_data=filter_data, limit=limit, offset=offset)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_supply_details_fbw(
+        self,
+        supply_id: int,
+        is_preorder_id: bool = False,
+        request_timeout: Optional[int] = None,
+    ) -> SupplyDetailsFBW:
+        """
+        Получение детализации конкретной поставки.
+
+        ⚠️ ЛИМИТЫ: 30 запросов в 2 секунды (Burst: 10 запросов).
+
+        :param supply_id: ID поставки (или ID заказа, если is_preorder_id=True).
+        :param is_preorder_id: Установите True, если ищете по ID заказа (незапланированной поставки).
+        """
+        call = GetSupplyDetailsFBW(supply_id=supply_id, is_preorder_id=is_preorder_id)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_supply_goods_fbw(
+        self,
+        supply_id: int,
+        limit: int = 100,
+        offset: int = 0,
+        is_preorder_id: bool = False,
+        request_timeout: Optional[int] = None,
+    ) -> List[GoodInSupplyFBW]:
+        """
+        Получение списка товаров (и их статусов приемки), которые находятся в поставке.
+
+        ⚠️ ЛИМИТЫ: 30 запросов в 2 секунды (Burst: 10 запросов).
+        """
+        call = GetSupplyGoodsFBW(
+            supply_id=supply_id,
+            limit=limit,
+            offset=offset,
+            is_preorder_id=is_preorder_id,
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_supply_package_fbw(
+        self,
+        supply_id: int,
+        request_timeout: Optional[int] = None,
+    ) -> List[BoxFBW]:
+        """
+        Получение информации об упаковке поставки (коробах и штрихкодах внутри них).
+
+        ⚠️ ЛИМИТЫ: 30 запросов в 2 секунды (Burst: 10 запросов).
+        """
+        call = GetSupplyPackageFBW(supply_id=supply_id)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # PROMOTION: УПРАВЛЕНИЕ КАМПАНИЯМИ
+    # ==========================================
+
+    async def get_campaigns_count(
+        self, request_timeout: Optional[int] = None
+    ) -> CountResponse:
+        """
+        Получение списков кампаний, сгруппированных по типу и статусу.
+
+        ⚠️ ЛИМИТЫ: 5 запросов в 1 секунду (Burst: 5).
+        """
+        return await self(GetCampaignsCount(), request_timeout=request_timeout)
+
+    async def get_adverts_info(
+        self,
+        ids: Optional[List[int]] = None,
+        statuses: Optional[List[int]] = None,
+        payment_type: Optional[str] = None,
+        request_timeout: Optional[int] = None,
+    ) -> GetAdvertsResponse:
+        """
+        Получение детальной информации о кампаниях.
+
+        ⚠️ ЛИМИТЫ: 5 запросов в 1 секунду (Burst: 5).
+
+        :param ids: Список ID кампаний (до 50 шт).
+        :param statuses: Список статусов (-1, 4, 7, 8, 9, 11).
+        :param payment_type: Тип оплаты (cpm, cpc).
+        """
+        ids_str = ",".join(map(str, ids)) if ids else None
+        statuses_str = ",".join(map(str, statuses)) if statuses else None
+
+        call = GetAdverts(ids=ids_str, statuses=statuses_str, payment_type=payment_type)
+        return await self(call, request_timeout=request_timeout)
+
+    async def rename_campaign(
+        self, advert_id: int, new_name: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Переименование кампании (до 100 символов).
+        ⚠️ ЛИМИТЫ: 5 запросов в 1 секунду (Burst: 5).
+        """
+        call = RenameCampaign(advertId=advert_id, name=new_name)
+        return await self(call, request_timeout=request_timeout)
+
+    async def start_campaign(
+        self, advert_id: int, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Запуск кампании (из статусов 4 и 11).
+        ⚠️ ЛИМИТЫ: 5 запросов в 1 секунду (Burst: 5).
+        """
+        return await self(StartCampaign(id=advert_id), request_timeout=request_timeout)
+
+    async def pause_campaign(
+        self, advert_id: int, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Приостановка кампании (из статуса 9).
+        ⚠️ ЛИМИТЫ: 5 запросов в 1 секунду (Burst: 5).
+        """
+        return await self(PauseCampaign(id=advert_id), request_timeout=request_timeout)
+
+    async def stop_campaign(
+        self, advert_id: int, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Полная остановка (завершение) кампании.
+        ⚠️ ЛИМИТЫ: 5 запросов в 1 секунду (Burst: 5).
+        """
+        return await self(StopCampaign(id=advert_id), request_timeout=request_timeout)
+
+    # ==========================================
+    # PROMOTION: ФИНАНСЫ И БЮДЖЕТ
+    # ==========================================
+
+    async def get_balance(
+        self, request_timeout: Optional[int] = None
+    ) -> BalanceResponse:
+        """
+        Получение баланса, счета и бонусов продавца.
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 5).
+        """
+        return await self(GetBalance(), request_timeout=request_timeout)
+
+    async def get_campaign_budget(
+        self, advert_id: int, request_timeout: Optional[int] = None
+    ) -> BudgetResponse:
+        """
+        Получение бюджета конкретной кампании.
+        ⚠️ ЛИМИТЫ: 4 запроса в 1 секунду (Burst: 4).
+        """
+        return await self(GetBudget(id=advert_id), request_timeout=request_timeout)
+
+    async def deposit_campaign_budget(
+        self,
+        advert_id: int,
+        amount: int,
+        source_type: int = 1,
+        request_timeout: Optional[int] = None,
+    ) -> DepositResponse:
+        """
+        Пополнение бюджета кампании. Сумма должна быть кратна 50 руб.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 5).
+
+        :param amount: Сумма пополнения (минимум 1000 руб).
+        :param source_type: Источник (0 - Счет, 1 - Баланс, 3 - Бонусы).
+        """
+        call = DepositBudget(id=advert_id, sum=amount, type=source_type)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_costs_history(
+        self, date_from: str, date_to: str, request_timeout: Optional[int] = None
+    ) -> List[UpdItem]:
+        """
+        Получение истории затрат (списаний) за период (максимум 31 день).
+        Формат дат: YYYY-MM-DD.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 5).
+        """
+        call = GetUpd(from_date=date_from, to_date=date_to)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # PROMOTION: СТАТИСТИКА И КАЛЕНДАРЬ
+    # ==========================================
+
+    async def get_campaigns_full_stats(
+        self,
+        advert_ids: List[int],
+        date_from: str,
+        date_to: str,
+        request_timeout: Optional[int] = None,
+    ) -> List[FullStatsItem]:
+        """
+        Получение полной ежедневной статистики по кампаниям.
+        Период: максимум 31 день. Формат: YYYY-MM-DD.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 минуту с шагом 20 сек (Burst: 1).
+        """
+        ids_str = ",".join(map(str, advert_ids))
+        call = GetFullStats(ids=ids_str, beginDate=date_from, endDate=date_to)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_calendar_promotions(
+        self,
+        start_date: str,
+        end_date: str,
+        all_promo: bool = False,
+        limit: int = 10,
+        offset: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> dict:
+        """
+        Получение списка доступных акций в Календаре WB.
+        Формат дат: YYYY-MM-DDTHH:MM:SSZ
+
+        ⚠️ ЛИМИТЫ: 10 запросов в 6 секунд (Burst: 5).
+        """
+        call = GetCalendarPromotions(
+            startDateTime=start_date,
+            endDateTime=end_date,
+            allPromo=all_promo,
+            limit=limit,
+            offset=offset,
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # ОТЗЫВЫ И ВОПРОСЫ
+    # ==========================================
+
+    async def get_unseen_feedbacks_questions(
+        self, request_timeout: Optional[int] = None
+    ) -> UnseenFQ:
+        """
+        Проверка наличия новых (непросмотренных) вопросов и отзывов.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 секунду с шагом 333 мс (Burst: 6 запросов).
+        """
+        result = await self(GetUnseenFQ(), request_timeout=request_timeout)
+        return result.data
+
+    async def get_questions(
+        self,
+        is_answered: bool,
+        take: int = 100,
+        skip: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> GetQuestionsData:
+        """
+        Получение списка вопросов. Максимум 10 000 вопросов за запрос.
+        Сумма take + skip не должна превышать 10 000.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 секунду с шагом 333 мс (Burst: 6 запросов).
+        """
+        call = GetQuestions(isAnswered=is_answered, take=take, skip=skip)
+        result = await self(call, request_timeout=request_timeout)
+        return result.data
+
+    async def answer_question(
+        self, question_id: str, text: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Ответ на вопрос покупателя.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 секунду с шагом 333 мс (Burst: 6 запросов).
+        """
+        call = PatchQuestion(id=question_id, answer={"text": text}, state="wbRu")
+        await self(call, request_timeout=request_timeout)
+        return True
+
+    async def get_feedbacks(
+        self,
+        is_answered: bool,
+        take: int = 100,
+        skip: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> GetFeedbacksData:
+        """
+        Получение списка отзывов с пагинацией (максимум 5 000 отзывов).
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 секунду с шагом 333 мс (Burst: 6 запросов).
+        """
+        call = GetFeedbacks(isAnswered=is_answered, take=take, skip=skip)
+        result = await self(call, request_timeout=request_timeout)
+        return result.data
+
+    async def answer_feedback(
+        self, feedback_id: str, text: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Отправка ответа на отзыв покупателя.
+
+        ⚠️ ЛИМИТЫ: 3 запроса в 1 секунду с шагом 333 мс (Burst: 6 запросов).
+        """
+        call = AnswerFeedback(id=feedback_id, text=text)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # ЧАТЫ С ПОКУПАТЕЛЯМИ
+    # ==========================================
+
+    async def get_seller_chats(
+        self, request_timeout: Optional[int] = None
+    ) -> List[ChatItem]:
+        """
+        Получение списка всех чатов продавца с покупателями.
+
+        ⚠️ ЛИМИТЫ: 10 запросов в 10 секунд (Burst: 10 запросов).
+        """
+        result = await self(GetChats(), request_timeout=request_timeout)
+        return result.result
+
+    async def get_chat_events(
+        self, next_cursor: Optional[int] = None, request_timeout: Optional[int] = None
+    ) -> ChatEventsResult:
+        """
+        Получение списка новых событий (сообщений) из всех чатов.
+        Для получения всех сообщений передавайте next_cursor из предыдущего ответа, пока totalEvents не станет 0.
+
+        ⚠️ ЛИМИТЫ: 10 запросов в 10 секунд (Burst: 10 запросов).
+        """
+        call = GetChatEvents(next=next_cursor)
+        result = await self(call, request_timeout=request_timeout)
+        return result.result
+
+    async def send_chat_message(
+        self, reply_sign: str, message: str, request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Отправка текстового сообщения в чат покупателю.
+        Для прикрепления файлов требуется модификация aiohttp сессии (поддержка FormData).
+
+        ⚠️ ЛИМИТЫ: 10 запросов в 10 секунд (Burst: 10 запросов).
+        """
+        call = SendChatMessage(replySign=reply_sign, message=message)
+        await self(call, request_timeout=request_timeout)
+        return True
+
+    # ==========================================
+    # ЗАЯВКИ НА ВОЗВРАТ (Брак)
+    # ==========================================
+
+    async def get_claims(
+        self,
+        is_archive: bool,
+        limit: int = 50,
+        offset: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> GetClaimsResponse:
+        """
+        Получение заявок покупателей на возврат товара. Заявки хранятся 14 дней.
+
+        ⚠️ ЛИМИТЫ: 20 запросов в 1 минуту с шагом 3 сек (Burst: 10 запросов).
+
+        :param is_archive: False - на рассмотрении, True - в архиве.
+        """
+        call = GetClaims(is_archive=is_archive, limit=limit, offset=offset)
+        return await self(call, request_timeout=request_timeout)
+
+    async def answer_claim(
+        self,
+        claim_id: str,
+        action: str,
+        comment: Optional[str] = None,
+        request_timeout: Optional[int] = None,
+    ) -> bool:
+        """
+        Ответ (решение) на заявку о возврате брака.
+
+        ⚠️ ЛИМИТЫ: 20 запросов в 1 минуту с шагом 3 сек (Burst: 10 запросов).
+
+        :param action: Действие (например, 'approve1' - вернуть деньги после возврата товара, 'reject1' - отказ и т.д.).
+        :param comment: Комментарий продавца (обязателен при action='rejectcustom').
+        """
+        call = AnswerClaim(id=claim_id, action=action, comment=comment)
         return await self(call, request_timeout=request_timeout)

@@ -1,4 +1,4 @@
-from typing import ClassVar, Optional, List
+from typing import ClassVar, List
 from pydantic import Field
 
 from .base import WBMethod
@@ -25,8 +25,6 @@ class GetNewOrdersDBW(WBMethod[GetNewOrdersDBWResponse]):
     __api_path__: ClassVar[str] = "/api/v3/dbw/orders/new"
     __domain__: ClassVar[WBDomain] = WBDomain.MARKETPLACE
     __returning__: ClassVar[type] = GetNewOrdersDBWResponse
-
-
 class GetOrdersDBW(WBMethod[GetOrdersDBWResponse]):
     """Получение информации по завершенным (отмененным или проданным) заказам."""
 
@@ -39,8 +37,6 @@ class GetOrdersDBW(WBMethod[GetOrdersDBWResponse]):
     date_to: int = Field(alias="dateTo")
     limit: int = 1000
     next: int = 0
-
-
 class GetDeliveryDateDBW(WBMethod[GetDeliveryDatesDBWResponse]):
     """Получение даты и времени доставки, выбранных покупателем."""
 
@@ -50,8 +46,6 @@ class GetDeliveryDateDBW(WBMethod[GetDeliveryDatesDBWResponse]):
     __returning__: ClassVar[type] = GetDeliveryDatesDBWResponse
 
     orders: List[int]
-
-
 class GetBuyerInfoDBW(WBMethod[GetClientInfoDBWResponse]):
     """Получение информации о покупателе (для курьерской доставки)."""
 
@@ -62,8 +56,6 @@ class GetBuyerInfoDBW(WBMethod[GetClientInfoDBWResponse]):
     __returning__: ClassVar[type] = GetClientInfoDBWResponse
 
     orders: List[int]
-
-
 class GetOrdersStatusesDBW(WBMethod[GetOrdersStatusesDBWResponse]):
     """Получение актуальных статусов заказов."""
 
@@ -73,8 +65,6 @@ class GetOrdersStatusesDBW(WBMethod[GetOrdersStatusesDBWResponse]):
     __returning__: ClassVar[type] = GetOrdersStatusesDBWResponse
 
     orders: List[int]
-
-
 class GetOrderStickersDBW(WBMethod[GetStickersDBWResponse]):
     """Получение этикеток (стикеров) для заказов."""
 
@@ -87,8 +77,6 @@ class GetOrderStickersDBW(WBMethod[GetStickersDBWResponse]):
     width: int
     height: int
     orders: List[int]
-
-
 class GetCourierInfoDBW(WBMethod[GetCourierInfoDBWResponse]):
     """Получение контактов курьера по ID заказа."""
 
@@ -103,8 +91,6 @@ class GetCourierInfoDBW(WBMethod[GetCourierInfoDBWResponse]):
 # ==========================================
 # ИЗМЕНЕНИЕ СТАТУСОВ (Управление)
 # ==========================================
-
-
 class ConfirmOrderDBW(WBMethod[bool]):
     """Перевод заказа в сборку (confirm)."""
 
@@ -117,8 +103,6 @@ class ConfirmOrderDBW(WBMethod[bool]):
     @property
     def __api_path__(self) -> str:
         return f"/api/v3/dbw/orders/{self.order_id}/confirm"
-
-
 class AssembleOrderDBW(WBMethod[bool]):
     """Перевод заказа в доставку (complete)."""
 
@@ -131,8 +115,6 @@ class AssembleOrderDBW(WBMethod[bool]):
     @property
     def __api_path__(self) -> str:
         return f"/api/v3/dbw/orders/{self.order_id}/assemble"
-
-
 class CancelOrderDBW(WBMethod[bool]):
     """Отмена заказа продавцом."""
 
@@ -150,8 +132,6 @@ class CancelOrderDBW(WBMethod[bool]):
 # ==========================================
 # УПРАВЛЕНИЕ МЕТАДАННЫМИ (Metadata)
 # ==========================================
-
-
 class GetOrderMetaDBW(WBMethod[GetOrderMetaDBWResponse]):
     """Получение метаданных (IMEI, УИН, КИЗ) заказа."""
 
@@ -164,8 +144,6 @@ class GetOrderMetaDBW(WBMethod[GetOrderMetaDBWResponse]):
     @property
     def __api_path__(self) -> str:
         return f"/api/v3/dbw/orders/{self.order_id}/meta"
-
-
 class DeleteOrderMetaDBW(WBMethod[bool]):
     """Удаление метаданных заказа по ключу."""
 
@@ -179,8 +157,6 @@ class DeleteOrderMetaDBW(WBMethod[bool]):
     @property
     def __api_path__(self) -> str:
         return f"/api/v3/dbw/orders/{self.order_id}/meta"
-
-
 class UpdateOrderMetaSgtinDBW(WBMethod[bool]):
     """Добавление КиЗов (Честный ЗНАК)."""
 
@@ -194,8 +170,6 @@ class UpdateOrderMetaSgtinDBW(WBMethod[bool]):
     @property
     def __api_path__(self) -> str:
         return f"/api/v3/dbw/orders/{self.order_id}/meta/sgtin"
-
-
 class UpdateOrderMetaUinDBW(WBMethod[bool]):
     """Добавление УИНа."""
 
@@ -209,8 +183,6 @@ class UpdateOrderMetaUinDBW(WBMethod[bool]):
     @property
     def __api_path__(self) -> str:
         return f"/api/v3/dbw/orders/{self.order_id}/meta/uin"
-
-
 class UpdateOrderMetaImeiDBW(WBMethod[bool]):
     """Добавление IMEI."""
 
@@ -224,8 +196,6 @@ class UpdateOrderMetaImeiDBW(WBMethod[bool]):
     @property
     def __api_path__(self) -> str:
         return f"/api/v3/dbw/orders/{self.order_id}/meta/imei"
-
-
 class UpdateOrderMetaGtinDBW(WBMethod[bool]):
     """Добавление GTIN (РБ)."""
 
