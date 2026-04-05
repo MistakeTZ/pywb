@@ -47,8 +47,38 @@ from ..methods import (
     DeleteOrderMetaDBW,
     UpdateOrderMetaSgtinDBW,
     UpdateOrderMetaUinDBW,
-    UpdateOrderMetaImeiDBW,
+    GetOrdersDBS,
+    GetNewOrdersDBS,
+    GetOrdersDBS,
+    GetOrderGroupsInfoDBS,
+    GetBuyerInfoDBS,
+    GetB2BBuyerInfoDBS,
+    GetDeliveryDateDBS,
+    GetOrderStickersDBS,
+    GetOrdersStatusesDBS,
+    ConfirmOrdersDBS,
+    DeliverOrdersDBS,
+    DeleteOrdersMetaDBS,
+    UpdateOrdersMetaSgtinDBS,
+    UpdateOrdersMetaUinDBS,
+    UpdateOrdersMetaImeiDBS,
+    UpdateOrdersMetaGtinDBS,
+    UpdateOrdersMetaSgtinDBS,
+    UpdateOrdersMetaUinDBS,
+    UpdateOrdersMetaImeiDBS,
+    UpdateOrdersMetaGtinDBS,
+    UpdateOrdersMetaCustomsDBS,
     UpdateOrderMetaGtinDBW,
+    UpdateOrderMetaImeiDBW,
+    UpdateMetaCustomsItem,
+    UpdateMetaGtinItem,
+    UpdateMetaImeiItem,
+    UpdateMetaUinItem,
+    UpdateMetaSgtinItem,
+    CancelOrdersDBS,
+    RejectOrdersDBS,
+    ReceiveOrdersDBS,
+    GetOrdersMetaDBS,
 )
 
 from ..types import (
@@ -83,6 +113,25 @@ from ..types import (
     OrderCourierInfo,
     ClientInfoDBW,
     DeliveryDateInfo,
+    GetNewOrdersDBSResponse,
+    GetOrdersDBSResponse,
+    OrderGroupDBS,
+    ClientInfoDBSResp,
+    B2BClientInfoResp,
+    DeliveryDateInfo,
+    GetStickersDBSResponse,
+    OrderStatusesV2Resp,
+    StatusSetResponsesResp,
+    OrderCodeRequestItem,
+    UpdateMetaSgtinItem,
+    UpdateMetaUinItem,
+    UpdateMetaImeiItem,
+    StatusSetResponsesResp,
+    OrdersMetaResponse,
+    B2BClientInfoResp,
+    DeliveryDateInfo,
+    GetStickersDBSResponse,
+    OrderStatusesV2Resp,
 )
 
 if TYPE_CHECKING:
@@ -779,4 +828,254 @@ class WBClient:
         ⚠️ ЛИМИТЫ: 1000 запросов в 1 минуту с шагом 60 мс (Burst: 20 запросов).
         """
         call = UpdateOrderMetaGtinDBW(order_id=order_id, gtin=gtin)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # DBS: СБОРОЧНЫЕ ЗАДАНИЯ И ИНФОРМАЦИЯ
+    # ==========================================
+
+    async def get_new_orders_dbs(
+        self, request_timeout: Optional[int] = None
+    ) -> GetNewOrdersDBSResponse:
+        """
+        Получение списка новых заказов (DBS).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        return await self(GetNewOrdersDBS(), request_timeout=request_timeout)
+
+    async def get_orders_dbs(
+        self,
+        date_from: int,
+        date_to: int,
+        limit: int = 1000,
+        next_cursor: int = 0,
+        request_timeout: Optional[int] = None,
+    ) -> GetOrdersDBSResponse:
+        """
+        Получение завершенных или отмененных заказов (DBS).
+        Максимальный период за один запрос — 30 календарных дней.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrdersDBS(
+            dateFrom=date_from, dateTo=date_to, limit=limit, next=next_cursor
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_order_groups_info_dbs(
+        self, groups: List[str], request_timeout: Optional[int] = None
+    ) -> List[OrderGroupDBS]:
+        """
+        Получение информации о платной доставке для объединенных заказов.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrderGroupsInfoDBS(groups=groups)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_buyer_info_dbs(
+        self, orders: List[int], request_timeout: Optional[int] = None
+    ) -> ClientInfoDBSResp:
+        """
+        Получение контактной информации о покупателе по ID заказа.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetBuyerInfoDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_b2b_buyer_info_dbs(
+        self, orders_ids: List[int], request_timeout: Optional[int] = None
+    ) -> B2BClientInfoResp:
+        """
+        Получение данных B2B покупателей (ИНН, КПП, Наименование).
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetB2BBuyerInfoDBS(ordersIds=orders_ids)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_delivery_date_dbs(
+        self, orders: List[int], request_timeout: Optional[int] = None
+    ) -> DeliveryDateInfo:
+        """
+        Получение информации о дате и времени доставки, выбранных покупателем.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetDeliveryDateDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def get_order_stickers_dbs(
+        self,
+        orders: List[int],
+        sticker_type: str = "pdf",
+        width: int = 58,
+        height: int = 40,
+        request_timeout: Optional[int] = None,
+    ) -> GetStickersDBSResponse:
+        """
+        Получение этикеток для заказов с доставкой в ПВЗ (в статусах confirm, deliver).
+        Формат только PDF. Размер только 58x40.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrderStickersDBS(
+            orders=orders, type=sticker_type, width=width, height=height
+        )
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # DBS: УПРАВЛЕНИЕ СТАТУСАМИ (Батч-операции)
+    # ==========================================
+
+    async def get_orders_statuses_dbs(
+        self, orders_ids: List[int], request_timeout: Optional[int] = None
+    ) -> OrderStatusesV2Resp:
+        """
+        Получение актуальных статусов заказов DBS.
+
+        ⚠️ ЛИМИТЫ: 300 запросов в 1 минуту с шагом 200 мс (Burst: 20 запросов).
+        """
+        call = GetOrdersStatusesDBS(ordersIds=orders_ids)
+        return await self(call, request_timeout=request_timeout)
+
+    async def confirm_orders_dbs(
+        self, orders_ids: List[int], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Перевод заказов DBS в статус confirm (на сборке).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 10 запросов).
+        """
+        call = ConfirmOrdersDBS(ordersIds=orders_ids)
+        return await self(call, request_timeout=request_timeout)
+
+    async def deliver_orders_dbs(
+        self, orders_ids: List[int], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Перевод заказов DBS в статус deliver (в доставке).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 10 запросов).
+        """
+        call = DeliverOrdersDBS(ordersIds=orders_ids)
+        return await self(call, request_timeout=request_timeout)
+
+    async def cancel_orders_dbs(
+        self, orders_ids: List[int], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Отмена заказов DBS продавцом (перевод в статус cancel).
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 10 запросов).
+        """
+        call = CancelOrdersDBS(ordersIds=orders_ids)
+        return await self(call, request_timeout=request_timeout)
+
+    async def receive_orders_dbs(
+        self, orders: List[OrderCodeRequestItem], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Подтверждение получения заказа покупателем (receive).
+        Требуется код подтверждения `code` от покупателя.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 10 запросов).
+        """
+        call = ReceiveOrdersDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def reject_orders_dbs(
+        self, orders: List[OrderCodeRequestItem], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Отказ покупателя от заказа при получении (reject).
+        Требуется код подтверждения `code` от покупателя.
+
+        ⚠️ ЛИМИТЫ: 1 запрос в 1 секунду (Burst: 10 запросов).
+        """
+        call = RejectOrdersDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    # ==========================================
+    # DBS: УПРАВЛЕНИЕ МЕТАДАННЫМИ (Маркировка)
+    # ==========================================
+
+    async def get_orders_meta_dbs(
+        self, orders_ids: List[int], request_timeout: Optional[int] = None
+    ) -> OrdersMetaResponse:
+        """
+        Получение метаданных заказов (УИН, КиЗ, IMEI, GTIN).
+
+        ⚠️ ЛИМИТЫ: 150 запросов в 1 минуту с шагом 400 мс (Burst: 20 запросов).
+        """
+        call = GetOrdersMetaDBS(ordersIds=orders_ids)
+        return await self(call, request_timeout=request_timeout)
+
+    async def delete_orders_meta_dbs(
+        self, order_ids: List[int], key: str, request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Удаление метаданных группы заказов по ключу.
+        Возможные ключи: imei, uin, gtin, sgtin, customsDeclaration.
+
+        ⚠️ ЛИМИТЫ: 150 запросов в 1 минуту с шагом 400 мс (Burst: 20 запросов).
+        """
+        call = DeleteOrdersMetaDBS(orderIds=order_ids, key=key)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_orders_meta_sgtin_dbs(
+        self, orders: List[UpdateMetaSgtinItem], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Установка кодов Data Matrix (Честный ЗНАК) для списка заказов.
+
+        ⚠️ ЛИМИТЫ: 500 запросов в 1 минуту с шагом 120 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrdersMetaSgtinDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_orders_meta_uin_dbs(
+        self, orders: List[UpdateMetaUinItem], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Установка УИНов для списка заказов.
+
+        ⚠️ ЛИМИТЫ: 500 запросов в 1 минуту с шагом 120 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrdersMetaUinDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_orders_meta_imei_dbs(
+        self, orders: List[UpdateMetaImeiItem], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Установка IMEI для списка заказов.
+
+        ⚠️ ЛИМИТЫ: 500 запросов в 1 минуту с шагом 120 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrdersMetaImeiDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_orders_meta_gtin_dbs(
+        self, orders: List[UpdateMetaGtinItem], request_timeout: Optional[int] = None
+    ) -> StatusSetResponsesResp:
+        """
+        Установка GTIN для списка заказов.
+
+        ⚠️ ЛИМИТЫ: 500 запросов в 1 минуту с шагом 120 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrdersMetaGtinDBS(orders=orders)
+        return await self(call, request_timeout=request_timeout)
+
+    async def update_orders_meta_customs_dbs(
+        self, orders: List[UpdateMetaCustomsItem], request_timeout: Optional[int] = None
+    ) -> bool:
+        """
+        Установка номеров таможенных деклараций для списка заказов.
+
+        ⚠️ ЛИМИТЫ: 500 запросов в 1 минуту с шагом 120 мс (Burst: 20 запросов).
+        """
+        call = UpdateOrdersMetaCustomsDBS(orders=orders)
         return await self(call, request_timeout=request_timeout)
